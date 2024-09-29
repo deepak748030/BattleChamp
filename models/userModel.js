@@ -9,7 +9,6 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         trim: true,  // Removes extra spaces from the email
-        unique: true,
         sparse: true,  // Allows the email to be optional initially, but enforces uniqueness once provided
         match: [/.+\@.+\..+/, 'Please enter a valid email address'], // Basic email validation
         default: '',  // Email can be empty on registration
