@@ -54,11 +54,29 @@ const loginUser = async (req, res) => {
     const { mobile } = req.body;
 
     try {
-        // Check if user exists by mobile number
+        // 1. Validate that the mobile number is provided
+        if (!mobile) {
+            return res.status(400).json({ message: 'Mobile number is required' });
+        }
+
+        // 2. Validate that the mobile number is a valid 10-digit number
+        const mobileRegex = /^\d{10}$/;
+        if (!mobileRegex.test(mobile)) {
+            return res.status(400).json({ message: 'Please enter a valid 10-digit mobile number' });
+        }
+
+        // 3. Check if user already exists by mobile number
         let user = await User.findOne({ mobile });
 
-        // If user does not exist, create new user with only mobile number
+        // 4. If user does not exist, create new user with only mobile number
         if (!user) {
+            // 5. Ensure that there's no duplicate with an empty email (for cases where email might be optional)
+            const existingUserWithEmptyEmail = await User.findOne({ email: '' });
+            if (existingUserWithEmptyEmail) {
+                return res.status(400).json({ message: 'User with an empty email already exists' });
+            }
+
+            // 6. Create new user
             user = new User({
                 name: '',  // Empty name
                 mobile,    // Mobile number from request
@@ -67,21 +85,23 @@ const loginUser = async (req, res) => {
                 depositWallet: 0,   // Initialize deposit wallet to 0
                 bonusWallet: 10,    // Initialize bonus wallet to ₹10
             });
+
+            // 7. Save the new user to the database
             await user.save();
         }
 
-        // Generate JWT token (replace 'secretkey' with your actual secret key)
+        // 8. Generate JWT token (replace 'secretkey' with your actual secret key)
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secretkey', {
             expiresIn: '1d', // Token expiration time
         });
 
-        // Respond with user data and token
+        // 9. Respond with user data and token
         res.status(200).json({
             message: 'Login successful',
             user: {
                 _id: user._id,
-                name: user.name,
-                email: user.email,
+                name: user.name || '',  // Empty name if not set
+                email: user.email || '',  // Empty email if not set
                 mobile: user.mobile,
                 isBlocked: user.isBlocked,
                 registerDate: user.registerDate,
@@ -89,12 +109,14 @@ const loginUser = async (req, res) => {
                 depositWallet: user.depositWallet,
                 bonusWallet: user.bonusWallet,
             },
-            token, // JWT token
+            token,  // JWT token
         });
     } catch (error) {
+        // 10. Error handling
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
 
 // Get user by userId
 const getUserById = async (req, res) => {
