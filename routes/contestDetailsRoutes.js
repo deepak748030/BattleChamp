@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/contestdetails', createContestDetails)
 
-router.get('/usercontest/:userId', getContestsByUserId)
+
 
 
 module.exports = router;
