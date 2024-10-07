@@ -26,7 +26,12 @@ app.get('/', (req, res) => {
 });
 
 // Use the user routes
-app.use('/api/user', require('./routes/users'));
+app.use('/api/user', require('./routes/usersRoutes'));
+app.use('/api', require('./routes/allGamesRoutes'));
+app.use('/api', require('./routes/contestDetailsRoutes'));
+app.use('/api', require('./routes/slotRoutes'));
+app.use('/api', require('./routes/userContestRoutes'));
+
 
 
 // Start the server
