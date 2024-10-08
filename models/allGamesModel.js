@@ -10,11 +10,6 @@ const allGamesSchema = new mongoose.Schema({
         type: String, // URL for the game's image
         required: true,
     },
-    gameId: {
-        type: String,
-        required: true,
-        unique: true, // Unique identifier for the game
-    },
     url: {
         type: String,
         required: true, // URL for the game

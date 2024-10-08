@@ -5,10 +5,12 @@ const createAllGame = async (req, res) => {
     try {
         const { gameName, image, url } = req.body;
 
+        // Validate input
         if (!gameName || !image || !url) {
             return res.status(400).json({ msg: 'All fields are required' });
         }
 
+        // Create new game
         const newGame = new AllGames({ gameName, image, url });
         await newGame.save();
 
@@ -18,4 +20,14 @@ const createAllGame = async (req, res) => {
     }
 };
 
-module.exports = { createAllGame };
+// GET /allgames - Get all games
+const getAllGames = async (req, res) => {
+    try {
+        const games = await AllGames.find(); // Fetch all games from the database
+        return res.status(200).json({ data: games });
+    } catch (error) {
+        return res.status(500).json({ msg: 'Error fetching games', error: error.message });
+    }
+};
+
+module.exports = { createAllGame, getAllGames };
