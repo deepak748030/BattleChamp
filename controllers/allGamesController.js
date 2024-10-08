@@ -30,4 +30,26 @@ const getAllGames = async (req, res) => {
     }
 };
 
-module.exports = { createAllGame, getAllGames };
+
+
+
+// DELETE /allgames/:gameId - Delete a game by ID
+const deleteGameById = async (req, res) => {
+    try {
+        const { gameId } = req.params;
+
+        // Find and delete the game by ID
+        const deletedGame = await AllGames.findByIdAndDelete(gameId);
+
+        if (!deletedGame) {
+            return res.status(404).json({ msg: 'Game not found' });
+        }
+
+        return res.status(200).json({ msg: 'Game deleted successfully', data: deletedGame });
+    } catch (error) {
+        return res.status(500).json({ msg: 'Error deleting game', error: error.message });
+    }
+};
+
+
+module.exports = { createAllGame, getAllGames, deleteGameById };
