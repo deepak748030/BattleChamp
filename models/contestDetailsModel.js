@@ -14,8 +14,12 @@ const contestDetailsSchema = new mongoose.Schema({
                 ref: 'User', // Reference to the User model
                 required: true,
             },
-            score: {
-                type: Number, // Score of the player
+            scoreBest: {
+                type: Number, // Best score of the player
+                required: true,
+            },
+            scoreRecent: {
+                type: Number, // Recent score of the player
                 required: true,
             }
         }

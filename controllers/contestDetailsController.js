@@ -26,7 +26,6 @@ const createContestDetails = async (req, res) => {
     }
 };
 
-
 // GET /contestdetails/:contestId - Get contest details by contest ID
 const getContestDetailsByContestId = async (req, res) => {
     try {
