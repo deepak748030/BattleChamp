@@ -23,10 +23,21 @@ const contestDetailsSchema = new mongoose.Schema({
                 required: true,
             }
         }
+    ],
+    winByRank: [
+        {
+            rank: {
+                type: String, // Store rank as string "1-10", "11-20", etc.
+                required: true,
+            },
+            amount: {
+                type: Number, // The amount for this rank range
+                required: true,
+            }
+        }
     ]
 }, { timestamps: true });
 
-// Create the ContestDetails model
 const ContestDetails = mongoose.model('ContestDetails', contestDetailsSchema);
 
 module.exports = ContestDetails;

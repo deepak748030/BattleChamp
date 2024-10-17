@@ -1,14 +1,50 @@
 const ContestDetails = require('../models/contestDetailsModel');
 
-// POST /contestdetails - Add contest details
+// Helper function to parse the rank range (e.g., "1-10") and return the start and end values
+const parseRankRange = (rank) => {
+    const [start, end] = rank.split('-').map(Number);
+    return { start, end };
+};
+
+// Helper function to check if two rank ranges overlap
+const checkRangeOverlap = (range1, range2) => {
+    const { start: start1, end: end1 } = parseRankRange(range1);
+    const { start: start2, end: end2 } = parseRankRange(range2);
+
+    // Ranges overlap if one range starts before the other ends and vice versa
+    return (start1 <= end2 && start2 <= end1);
+};
+
+// Helper function to validate if winByRank contains any overlapping ranges
+const validateWinByRank = (winByRank) => {
+    for (let i = 0; i < winByRank.length; i++) {
+        for (let j = i + 1; j < winByRank.length; j++) {
+            if (checkRangeOverlap(winByRank[i].rank, winByRank[j].rank)) {
+                return true; // Overlapping range found
+            }
+        }
+    }
+    return false;
+};
+
+// POST /contestdetails - Add contest details with rank validation
 const createContestDetails = async (req, res) => {
     try {
-        const { contestId, joinedPlayerData } = req.body;
+        const { contestId, joinedPlayerData, winByRank } = req.body;
+
+        // Validate winByRank for overlapping ranges
+        const hasOverlap = validateWinByRank(winByRank);
+        if (hasOverlap) {
+            return res.status(400).json({
+                msg: 'Overlapping rank ranges detected. Please provide non-overlapping ranges.'
+            });
+        }
 
         // Create a new instance of contest details
         const newContestDetails = new ContestDetails({
             contestId,
-            joinedPlayerData
+            joinedPlayerData,
+            winByRank
         });
 
         // Save the contest details to the database
@@ -34,7 +70,8 @@ const getContestDetailsByContestId = async (req, res) => {
         // Find the contest details by contest ID
         const contestDetails = await ContestDetails.findOne({ contestId })
             .populate('contestId') // Populate the Slots model
-            .populate('joinedPlayerData.userId'); // Populate the User model for joined players
+            .populate('joinedPlayerData.userId') // Populate the User model for joined players
+            .select('joinedPlayerData winByRank'); // Select relevant fields
 
         if (!contestDetails) {
             return res.status(404).json({
