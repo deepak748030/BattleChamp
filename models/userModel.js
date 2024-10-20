@@ -46,6 +46,16 @@ const userSchema = new mongoose.Schema({
         default: 0,  // Bonus wallet balance starts at 0
         min: [0, 'Bonus wallet cannot be negative'],  // Ensure no negative values
     },
+    lifetimeWinning: {
+        type: Number,
+        default: 0,  // Lifetime winnings start at 0
+        min: [0, 'Lifetime winnings cannot be negative'],  // Ensure no negative values
+    },
+    type: {
+        type: Number,
+        enum: [0, 1],  // Type can only be 0 or 1
+        default: 0,  // Default type is 0
+    }
 });
 
 const User = mongoose.model('User', userSchema);

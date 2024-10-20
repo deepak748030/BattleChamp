@@ -2,8 +2,9 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
 // Register a new user
+// Register a new user
 const registerUser = async (req, res) => {
-    const { name, mobile, email } = req.body;
+    const { name, mobile, email, type } = req.body;
 
     try {
         // Check if user already exists
@@ -20,6 +21,8 @@ const registerUser = async (req, res) => {
             winningWallet: 0,   // Initialize winning wallet to 0
             depositWallet: 0,   // Initialize deposit wallet to 0
             bonusWallet: 10,    // Initialize bonus wallet to ₹10
+            lifetimeWinning: 0, // Initialize lifetime winnings to 0
+            type: type || 0,    // Set type if provided, otherwise default to 0
         });
         await newUser.save();
 
@@ -41,6 +44,8 @@ const registerUser = async (req, res) => {
                 winningWallet: newUser.winningWallet,
                 depositWallet: newUser.depositWallet,
                 bonusWallet: newUser.bonusWallet,
+                lifetimeWinning: newUser.lifetimeWinning,
+                type: newUser.type,
             },
             token, // JWT token
         });
@@ -50,6 +55,8 @@ const registerUser = async (req, res) => {
 };
 
 
+
+// Login user with mobile number or create new user
 // Login user with mobile number or create new user
 const loginUser = async (req, res) => {
     const { mobile } = req.body;  // Only mobile number is provided
@@ -89,6 +96,8 @@ const loginUser = async (req, res) => {
                     winningWallet: user.winningWallet,
                     depositWallet: user.depositWallet,
                     bonusWallet: user.bonusWallet,
+                    lifetimeWinning: user.lifetimeWinning,
+                    type: user.type,
                 },
                 token, // JWT token
             });
@@ -102,6 +111,8 @@ const loginUser = async (req, res) => {
             winningWallet: 0,   // Initialize winning wallet to 0
             depositWallet: 0,   // Initialize deposit wallet to 0
             bonusWallet: 10,    // Initialize bonus wallet to ₹10
+            lifetimeWinning: 0, // Initialize lifetime winnings to 0
+            type: 0,  // Default type to 0
         });
 
         // Save the new user to the database
@@ -125,6 +136,8 @@ const loginUser = async (req, res) => {
                 winningWallet: user.winningWallet,
                 depositWallet: user.depositWallet,
                 bonusWallet: user.bonusWallet,
+                lifetimeWinning: user.lifetimeWinning,
+                type: user.type,
             },
             token, // JWT token
         });
@@ -135,6 +148,9 @@ const loginUser = async (req, res) => {
 };
 
 
+
+// Get user by userId
+// Get user by userId
 // Get user by userId
 const getUserById = async (req, res) => {
     const { id } = req.params;  // Extract the userId from request parameters
@@ -162,6 +178,8 @@ const getUserById = async (req, res) => {
                 winningWallet: user.winningWallet,
                 depositWallet: user.depositWallet,
                 bonusWallet: user.bonusWallet,
+                lifetimeWinning: user.lifetimeWinning,
+                type: user.type,
             },
         });
     } catch (error) {
@@ -169,10 +187,13 @@ const getUserById = async (req, res) => {
     }
 };
 
+
+
+// Update user data by userId (excluding wallet updates)
 // Update user data by userId (excluding wallet updates)
 const updateUser = async (req, res) => {
     const { id } = req.params;  // Extract the userId from the request parameters
-    const { name, email } = req.body;  // Data to be updated (excluding wallets)
+    const { name, email, type } = req.body;  // Data to be updated (excluding wallets)
 
     try {
         // Find the user by id
@@ -186,6 +207,7 @@ const updateUser = async (req, res) => {
         // Update user fields if provided (excluding wallet data)
         if (name) user.name = name;
         if (email) user.email = email;
+        if (type !== undefined) user.type = type;  // Update type if provided
 
         // Save the updated user data
         const updatedUser = await user.save();
@@ -203,6 +225,8 @@ const updateUser = async (req, res) => {
                 winningWallet: updatedUser.winningWallet,  // Unchanged
                 depositWallet: updatedUser.depositWallet,  // Unchanged
                 bonusWallet: updatedUser.bonusWallet,  // Unchanged
+                lifetimeWinning: updatedUser.lifetimeWinning,  // Unchanged
+                type: updatedUser.type,  // Updated type
             },
         });
     } catch (error) {
