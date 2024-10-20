@@ -31,6 +31,7 @@ app.use('/api', require('./routes/allGamesRoutes'));
 app.use('/api', require('./routes/contestDetailsRoutes'));
 app.use('/api', require('./routes/contestRoutes'));
 app.use('/api', require('./routes/userContestRoutes'));
+app.use('/api', require('./routes/winnersRoutes'));
 
 
 
