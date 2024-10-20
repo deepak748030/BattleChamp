@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 // Define the Contest schema (renamed from Slots)
 const contestSchema = new mongoose.Schema({
+    name: {
+        type: String, // Name of the contest
+        required: true,
+    },
     gameId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AllGames', // Reference to the AllGames model

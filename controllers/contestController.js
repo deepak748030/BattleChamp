@@ -1,9 +1,11 @@
 const Contest = require('../models/contestModel'); // Updated import to Contest
+const ContestDetails = require('../models/contestDetailsModel'); // Import the ContestDetails model
 
 // POST /contest - Create a new contest
 const createContest = async (req, res) => {
     try {
         const {
+            name, // Add the name field from request body
             gameId,
             amount,
             commission,
@@ -17,12 +19,13 @@ const createContest = async (req, res) => {
         } = req.body;
 
         // Check if all required fields are provided
-        if (!gameId || !amount || !commission || !contestStartDate || !matchStartTime || !matchEndTime || !availableSlots || !totalSlots) {
+        if (!name || !gameId || !amount || !commission || !contestStartDate || !matchStartTime || !matchEndTime || !availableSlots || !totalSlots) {
             return res.status(400).json({ msg: 'All fields are required' });
         }
 
         // Create a new contest document
         const newContest = new Contest({
+            name, // Include name
             gameId,
             amount,
             commission,
@@ -37,6 +40,14 @@ const createContest = async (req, res) => {
 
         // Save the new contest to the database
         await newContest.save();
+
+        // Create an entry in the contestDetails collection
+        const contestDetailsEntry = new ContestDetails({
+            contestId: newContest._id, // Use the contest ID of the newly created contest
+            joinedPlayersData: [] // Start with an empty array
+        });
+
+        await contestDetailsEntry.save(); // Save the contest details entry
 
         return res.status(201).json({ msg: 'Contest created successfully', data: newContest });
     } catch (error) {
