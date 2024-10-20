@@ -1,28 +1,38 @@
 const ContestDetails = require('../models/contestDetailsModel');
 
-// POST /contestdetails - Add contest details
-const createContestDetails = async (req, res) => {
+// PUT /contestDetails - Update contest details based on contestId and userId
+const updateContestDetails = async (req, res) => {
+    const { contestId, userId, score } = req.body;
+
     try {
-        const { contestId, joinedPlayerData } = req.body;
+        // Find contest details by contestId
+        const contestDetails = await ContestDetails.findOne({ contestId });
 
-        // Create a new instance of contest details
-        const newContestDetails = new ContestDetails({
-            contestId,
-            joinedPlayerData,
-        });
+        if (!contestDetails) {
+            return res.status(404).json({ msg: 'Contest not found' });
+        }
 
-        // Save the contest details to the database
-        await newContestDetails.save();
+        // Find the player data for the given userId
+        const player = contestDetails.joinedPlayersData.find(player => player.userId.toString() === userId);
 
-        return res.status(201).json({
-            msg: 'Contest details added successfully',
-            data: newContestDetails
-        });
+        if (!player) {
+            return res.status(404).json({ msg: 'Player not found in this contest' });
+        }
+
+        // Check if the new score is greater than bestScore and update accordingly
+        if (score > player.scoreBest) {
+            player.scoreBest = score;
+        }
+
+        // Always update recent score
+        player.scoreRecent = score;
+
+        // Save the updated contest details
+        await contestDetails.save();
+
+        return res.status(200).json({ msg: 'Contest details updated successfully', data: contestDetails });
     } catch (error) {
-        return res.status(500).json({
-            msg: 'Error adding contest details',
-            error: error.message
-        });
+        return res.status(500).json({ msg: 'Error updating contest details', error: error.message });
     }
 };
 
@@ -31,31 +41,23 @@ const getContestDetailsByContestId = async (req, res) => {
     try {
         const { contestId } = req.params;
 
-        // Find the contest details by contest ID
+        // Find contest details by contestId and populate data
         const contestDetails = await ContestDetails.findOne({ contestId })
-            .populate('contestId') // Populate the Slots model
-            .populate('joinedPlayerData.userId') // Populate the User model for joined players
-            .select('joinedPlayerData'); // Select relevant fields (winByRank removed)
+            .populate('contestId')
+            .populate('joinedPlayerData.userId')
+            .select('joinedPlayerData');
 
         if (!contestDetails) {
-            return res.status(404).json({
-                msg: 'Contest details not found for the given contest ID'
-            });
+            return res.status(404).json({ msg: 'Contest details not found for the given contest ID' });
         }
 
-        return res.status(200).json({
-            msg: 'Contest details retrieved successfully',
-            data: contestDetails
-        });
+        return res.status(200).json({ msg: 'Contest details retrieved successfully', data: contestDetails });
     } catch (error) {
-        return res.status(500).json({
-            msg: 'Error fetching contest details',
-            error: error.message
-        });
+        return res.status(500).json({ msg: 'Error fetching contest details', error: error.message });
     }
 };
 
 module.exports = {
-    createContestDetails,
+    updateContestDetails,
     getContestDetailsByContestId
 };

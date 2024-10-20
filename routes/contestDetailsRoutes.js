@@ -1,10 +1,10 @@
 const express = require('express');
-const { createContestDetails, getContestDetailsByContestId } = require('../controllers/contestDetailsController');
+const { getContestDetailsByContestId, updateContestDetails } = require('../controllers/contestDetailsController');
 
 const router = express.Router();
 
-// POST route to create contest details
-router.post('/contestdetails', createContestDetails);
+// PUT route to update contest details
+router.put('/contestdetails', updateContestDetails);
 
 // GET route to fetch contest details by contest ID
 router.get('/contestdetails/:contestId', getContestDetailsByContestId);
