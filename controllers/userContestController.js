@@ -1,4 +1,5 @@
 const UserContest = require('../models/userContestModel');
+const ContestDetails = require('../models/contestDetailsModel'); // Import the ContestDetails model
 
 // POST /usercontest - Join a contest
 const joinUserContest = async (req, res) => {
@@ -13,6 +14,12 @@ const joinUserContest = async (req, res) => {
 
         const newUserContest = new UserContest({ userId, contestId });
         await newUserContest.save();
+
+        // Update the contestDetails by adding userId to the joinedPlayersData array
+        await ContestDetails.updateOne(
+            { contestId }, // Match the contestId
+            { $addToSet: { joinedPlayersData: userId } } // Add userId to joinedPlayersData array, avoiding duplicates
+        );
 
         return res.status(201).json({ msg: 'User joined contest successfully', data: newUserContest });
     } catch (error) {
