@@ -55,6 +55,8 @@ const contestSchema = new mongoose.Schema({
                 type: Number, // The amount for this rank range
                 required: true,
             }
+
+
         }
     ]
 }, { timestamps: true });
