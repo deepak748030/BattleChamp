@@ -9,7 +9,7 @@ const userContestSchema = new mongoose.Schema({
     },
     contestId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Slots', // Reference to the Slots model
+        ref: 'Contest', // Reference to the Slots model
         required: true,
     }
 }, { timestamps: true });
