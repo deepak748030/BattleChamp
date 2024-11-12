@@ -55,10 +55,13 @@ const contestSchema = new mongoose.Schema({
                 type: Number, // The amount for this rank range
                 required: true,
             }
-
-
         }
-    ]
+    ],
+    betType: { // New betType field added
+        type: String, // Type of bet (either "token" or "money")
+        enum: ['token', 'money'], // Restrict values to "token" or "money"
+        required: true
+    }
 }, { timestamps: true });
 
 // Create the Contest model (renamed from Slots)

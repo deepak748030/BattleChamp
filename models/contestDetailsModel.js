@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 // Define the ContestDetails schema
 const contestDetailsSchema = new mongoose.Schema({
     contestId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Slots', // Reference to the Slots model
+        type: String,
         required: true,
     },
     joinedPlayerData: [

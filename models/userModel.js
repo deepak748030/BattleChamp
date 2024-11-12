@@ -46,6 +46,11 @@ const userSchema = new mongoose.Schema({
         default: 0,  // Bonus wallet balance starts at 0
         min: [0, 'Bonus wallet cannot be negative'],  // Ensure no negative values
     },
+    token: {
+        type: Number,
+        default: 10,  // token balance starts at 10
+        min: [0, 'token cannot be negative'],  // Ensure no negative values
+    },
     lifetimeWinning: {
         type: Number,
         default: 0,  // Lifetime winnings start at 0

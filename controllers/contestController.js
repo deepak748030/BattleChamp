@@ -1,11 +1,10 @@
 const Contest = require('../models/contestModel'); // Updated import to Contest
 const ContestDetails = require('../models/contestDetailsModel'); // Import the ContestDetails model
 
-// POST /contest - Create a new contest
 const createContest = async (req, res) => {
     try {
         const {
-            name, // Add the name field from request body
+            name,
             gameId,
             amount,
             commission,
@@ -15,17 +14,18 @@ const createContest = async (req, res) => {
             availableSlots,
             totalSlots,
             contestStatus,
-            winByRank // Include winByRank in request body
+            winByRank,
+            betType // Add the betType field from the request body
         } = req.body;
 
         // Check if all required fields are provided
-        if (!name || !gameId || !amount || !commission || !contestStartDate || !matchStartTime || !matchEndTime || !availableSlots || !totalSlots) {
+        if (!name || !gameId || !amount || !commission || !contestStartDate || !matchStartTime || !matchEndTime || !availableSlots || !totalSlots || !betType) {
             return res.status(400).json({ msg: 'All fields are required' });
         }
 
         // Create a new contest document
         const newContest = new Contest({
-            name, // Include name
+            name,
             gameId,
             amount,
             commission,
@@ -34,8 +34,9 @@ const createContest = async (req, res) => {
             matchEndTime,
             availableSlots,
             totalSlots,
-            contestStatus: contestStatus || 'upcoming', // Default to 'upcoming' if not provided
-            winByRank // Include winByRank
+            contestStatus: contestStatus || 'upcoming',
+            winByRank,
+            betType // Include betType
         });
 
         // Save the new contest to the database
@@ -54,6 +55,7 @@ const createContest = async (req, res) => {
         return res.status(500).json({ msg: 'Error creating contest', error: error.message });
     }
 };
+
 
 // GET /contest/:gameId - Get contests by Game ID
 const getContestsByGameId = async (req, res) => {
