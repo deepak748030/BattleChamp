@@ -1,17 +1,21 @@
-const UserContest = require('../models/userContestModel');
-const ContestDetails = require('../models/contestDetailsModel'); // Import the ContestDetails model
-
 // POST /usercontest - Join a contest
+const { getIo } = require('../sockets/socketService'); // Import the Socket.io instance
+const Contest = require('../models/contestModel'); // Import Contest model
+const ContestDetails = require('../models/contestDetailsModel'); // Import ContestDetails model if required
+const UserContest = require('../models/userContestModel'); // Import UserContest model
+
 const joinUserContest = async (req, res) => {
     try {
         const { userId, contestId } = req.body;
 
+        // Check if the user has already joined the contest
         const alreadyJoined = await UserContest.findOne({ userId, contestId });
 
         if (alreadyJoined) {
             return res.status(400).json({ msg: 'User has already joined this contest' });
         }
 
+        // Create a new UserContest entry
         const newUserContest = new UserContest({ userId, contestId });
         await newUserContest.save();
 
@@ -20,6 +24,25 @@ const joinUserContest = async (req, res) => {
             { contestId }, // Match the contestId
             { $addToSet: { joinedPlayersData: userId } } // Add userId to joinedPlayersData array, avoiding duplicates
         );
+
+        // Reduce the available slots in the Contest model
+        const contest = await Contest.findOneAndUpdate(
+            { _id: contestId, availableSlots: { $gt: 0 } }, // Ensure available slots are greater than 0
+            { $inc: { availableSlots: -1 } }, // Decrement available slots by 1
+            { new: true } // Return the updated contest document
+        );
+
+        // If contest was not found or slots are full
+        if (!contest) {
+            return res.status(400).json({ msg: 'No available slots for this contest' });
+        }
+
+        // Emit the updated contest data using Socket.io
+        const io = getIo();
+        io.emit('contestUpdated', {
+            contestId: contest._id,
+            availableSlots: contest.availableSlots
+        });
 
         return res.status(201).json({ msg: 'User joined contest successfully', data: newUserContest });
     } catch (error) {
