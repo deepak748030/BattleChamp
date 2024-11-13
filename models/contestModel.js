@@ -52,7 +52,7 @@ const contestSchema = new mongoose.Schema({
                 required: true,
             },
             amount: {
-                type: Number, // The amount for this rank range
+                type: String, // The amount for this rank range
                 required: true,
             }
         }
