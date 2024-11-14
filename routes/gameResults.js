@@ -1,5 +1,5 @@
 const express = require('express');
-const GameResult = require('../models/GameResult'); // Import the GameResult model
+const GameResult = require('../models/gameResult'); // Import the GameResult model
 const router = express.Router();
 
 // POST route to save the game result
