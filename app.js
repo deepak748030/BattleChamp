@@ -36,6 +36,7 @@ app.use('/api', require('./routes/contestRoutes'));
 app.use('/api', require('./routes/userContestRoutes'));
 app.use('/api', require('./routes/winnersRoutes'));
 app.use('/api', require('./routes/leaderboardRoutes'));
+app.use('/api', require('./routes/gameResults'));
 
 // Initialize Socket.io with the HTTP server
 initializeSocket(server);
