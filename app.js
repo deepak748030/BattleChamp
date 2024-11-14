@@ -14,9 +14,12 @@ const server = http.createServer(app); // Create server with http
 // Connect to the database
 connectDB();
 
-// Enable CORS for all routes
+// Enable CORS for all routes with additional options
 app.use(cors({
-  origin: '*'
+  origin: process.env.CLIENT_URL || '*', // Allow only specific origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+  credentials: true, // Allow credentials like cookies and authorization headers
 }));
 
 // Middleware to parse incoming requests
