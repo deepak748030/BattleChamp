@@ -4,7 +4,7 @@ const { getContestDetailsByContestId, updateContestDetails } = require('../contr
 const router = express.Router();
 
 // PUT route to update contest details
-router.put('/contestdetails', updateContestDetails);
+router.post('/contestdetails', updateContestDetails);
 
 // GET route to fetch contest details by contest ID
 router.get('/contestdetails/:contestId', getContestDetailsByContestId);

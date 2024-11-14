@@ -24,10 +24,10 @@ const initializeSocket = (server) => {
 };
 
 // Function to send a message to a specific session (room)
-const sendMessageToSession = (sessionId, message) => {
+const sendMessageToSession = (sessionId, score) => {
     if (io && Socket) {
         Socket.join(sessionId); // Use the Socket variable here
-        io.to(sessionId).emit('message', message); // Send message to the room
+        io.to(sessionId).emit('recentScore', score); // Send message to the room
     } else {
         console.error('Socket.io is not initialized or no client is connected');
     }
