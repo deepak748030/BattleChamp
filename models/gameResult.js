@@ -4,7 +4,7 @@ const gameResultSchema = new mongoose.Schema({
     sessionId: { type: String, required: true },
     userId: { type: String, required: true },
     contestId: { type: String, required: true },
-    score: { type: String, required: true }
+    score: { type: Number, required: true, default: 0 } // changed to Number
 }, {
     timestamps: true // automatically adds createdAt and updatedAt fields
 });

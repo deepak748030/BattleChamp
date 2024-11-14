@@ -1,37 +1,39 @@
-// sockets/socketService.js
-
 const socketIo = require('socket.io');
+let io; // Define io globally so it can be accessed by other files
 
-let io;
-
+// Initialize socket.io server
 const initializeSocket = (server) => {
     io = socketIo(server, {
         cors: {
-            origin: '*', // Allow CORS from any origin; update as needed
+            origin: '*',
             methods: ['GET', 'POST']
         }
     });
 
+    // Handle socket connections
     io.on('connection', (socket) => {
         console.log(`Client connected: ${socket.id}`);
 
-        // Example custom event: handle incoming messages
-        socket.on('message', (data) => {
-            console.log(`Message received: ${data}`);
-            io.emit('message', data); // Broadcast message to all clients
+        // Listen for users joining a session
+        socket.on('joinSession', (sessionId) => {
+            socket.join(sessionId); // Join the room corresponding to sessionId
+            console.log(`Socket ${socket.id} joined room ${sessionId}`);
         });
 
+        // Handle socket disconnections
         socket.on('disconnect', () => {
-            console.log(`Client disconnected: ${socket.id}`);
+            console.log(`Socket disconnected: ${socket.id}`);
         });
     });
 };
 
-const getIo = () => {
-    if (!io) {
-        throw new Error('Socket.io not initialized');
+// Function to send a message to a specific session (room)
+const sendMessageToSession = (sessionId, message) => {
+    if (io) {
+        io.to(sessionId).emit('message', message); // Send message to the room
+    } else {
+        console.error('Socket.io is not initialized');
     }
-    return io;
 };
 
-module.exports = { initializeSocket, getIo };
+module.exports = { initializeSocket, sendMessageToSession };
