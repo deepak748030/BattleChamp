@@ -47,10 +47,10 @@ const updateGameResultScore = async (req, res) => {
 
         // Update the contest score using a utility function
         const updatedData = await updateResult(updatedGameResult.contestId, updatedGameResult.userId, updatedGameResult.score);
-        console.log('Updated contest data:', updatedData);
+        // console.log('Updated contest data:', score);
 
         // Send the updated data to all users in the session room via socket.io
-        sendMessageToSession(sessionId, updatedData);
+        sendMessageToSession(sessionId, score);
 
         // Return a successful response with the updated game result
         res.status(200).json({

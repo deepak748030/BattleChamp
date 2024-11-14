@@ -1,5 +1,6 @@
 const socketIo = require('socket.io');
 let io; // Define io globally so it can be accessed by other files
+let Socket; // Define Socket globally so it can be used later
 
 // Initialize socket.io server
 const initializeSocket = (server) => {
@@ -14,12 +15,7 @@ const initializeSocket = (server) => {
     io.on('connection', (socket) => {
         console.log(`Client connected: ${socket.id}`);
 
-        // Listen for users joining a session
-        socket.on('joinSession', (sessionId) => {
-            socket.join(sessionId); // Join the room corresponding to sessionId
-            console.log(`Socket ${socket.id} joined room ${sessionId}`);
-        });
-
+        Socket = socket;
         // Handle socket disconnections
         socket.on('disconnect', () => {
             console.log(`Socket disconnected: ${socket.id}`);
@@ -29,10 +25,11 @@ const initializeSocket = (server) => {
 
 // Function to send a message to a specific session (room)
 const sendMessageToSession = (sessionId, message) => {
-    if (io) {
+    if (io && Socket) {
+        Socket.join(sessionId); // Use the Socket variable here
         io.to(sessionId).emit('message', message); // Send message to the room
     } else {
-        console.error('Socket.io is not initialized');
+        console.error('Socket.io is not initialized or no client is connected');
     }
 };
 
