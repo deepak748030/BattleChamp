@@ -1,9 +1,7 @@
 const ContestDetails = require('../models/contestDetailsModel');
 
-
 const updateContestDetails = async (req, res) => {
     const { contestId, userId } = req.body;
-    // console.log(contestId, userId);
 
     try {
         // Find contest details by contestId and populate joinedPlayerData.userId
@@ -15,7 +13,6 @@ const updateContestDetails = async (req, res) => {
 
         // Find all joined players
         const joinedPlayersData = contestDetails.joinedPlayerData;
-        // console.log(joinedPlayersData);
         if (!joinedPlayersData.length) {
             return res.status(404).json({ msg: 'No players found in this contest' });
         }
@@ -39,13 +36,34 @@ const updateContestDetails = async (req, res) => {
         const higherRankPlayer = sortedPlayers[userRank - 2] || null; // User with one rank higher
         const lowerRankPlayer = sortedPlayers[userRank] || null;      // User with one rank lower
 
+
         return res.status(200).json({
             msg: 'Contest details retrieved successfully',
             data: {
-                contestDetails,
-                userRank,
-                higherRankPlayer,
-                lowerRankPlayer
+                userDetails: {
+                    userId: player.userId._id,
+                    name: player.userId.name,
+                    userPhone: player.userId.mobile,
+                    bestScore: player.scoreBest,
+                    rank: userRank,
+                    prize: null
+                },
+                higherRankPlayer: higherRankPlayer ? {
+                    userId: higherRankPlayer.userId._id,
+                    name: higherRankPlayer.userId.name,
+                    userPhone: higherRankPlayer.userId.mobile,
+                    bestScore: higherRankPlayer.scoreBest,
+                    rank: userRank - 1,
+                    prize: null
+                } : null,
+                lowerRankPlayer: lowerRankPlayer ? {
+                    userId: lowerRankPlayer.userId._id,
+                    name: lowerRankPlayer.userId.name,
+                    userPhone: lowerRankPlayer.userId.mobile,
+                    bestScore: lowerRankPlayer.scoreBest,
+                    rank: userRank + 1,
+                    prize: null
+                } : null,
             }
         });
     } catch (error) {
