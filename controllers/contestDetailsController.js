@@ -1,5 +1,6 @@
 const ContestDetails = require('../models/contestDetailsModel');
 const Contest = require('../models/contestModel')
+
 const updateContestDetails = async (req, res) => {
     const { contestId, userId } = req.body;
 
@@ -113,7 +114,35 @@ const getContestDetailsByContestId = async (req, res) => {
     }
 };
 
+
+const contestJoinPlayerCheck = async (req, res) => {
+    const { contestId, userId } = req.body;
+
+    try {
+        // Find contest details by contestId
+        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
+
+        if (!contestDetails) {
+            return res.status(404).json({ msg: 'Contest details not found' });
+        }
+
+        // Check if the user has joined the contest
+        const player = contestDetails.joinedPlayerData.find(player => player.userId._id.toString() === userId);
+
+        if (!player) {
+            return res.status(404).send(false);
+        }
+
+        return res.status(200).send(true);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ msg: 'Server error' });
+    }
+};
 module.exports = {
     updateContestDetails,
-    getContestDetailsByContestId
+    getContestDetailsByContestId,
+    contestJoinPlayerCheck
 };
+
+
