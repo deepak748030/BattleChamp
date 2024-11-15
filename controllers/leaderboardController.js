@@ -10,7 +10,7 @@ const getLeaderboardByContestId = async (req, res) => {
         // Fetch contest details with matching contestId
         const contestDetails = await ContestDetails.findOne({ contestId });
 
-        if (!contestDetails || contestDetails.joinedPlayersData.length === 0) {
+        if (!contestDetails || contestDetails.joinedPlayerData.length === 0) {
             return res.status(404).json({ msg: 'No data found for this contest' });
         }
 

@@ -1,30 +1,32 @@
 const ContestDetails = require('../models/contestDetailsModel');
-
+const Contest = require('../models/contestModel')
 const updateContestDetails = async (req, res) => {
     const { contestId, userId } = req.body;
 
     try {
-        // Find contest details by contestId and populate joinedPlayerData.userId
+        // Fetch contest and winByRank array
         const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
+        const contest = await Contest.findById(contestId);
 
         if (!contestDetails) {
             return res.status(404).json({ msg: 'Contest not found' });
         }
 
-        // Find all joined players
+        if (!contest) {
+            return res.status(404).json({ msg: 'Contest details not found' });
+        }
+
         const joinedPlayersData = contestDetails.joinedPlayerData;
         if (!joinedPlayersData.length) {
             return res.status(404).json({ msg: 'No players found in this contest' });
         }
 
-        // Find the player data for the given userId
         const player = joinedPlayersData.find(player => player.userId._id.toString() === userId);
 
         if (!player) {
             return res.status(404).json({ msg: 'Player not found in this contest' });
         }
 
-        // Determine the player's rank based on scoreBest
         const sortedPlayers = joinedPlayersData.sort((a, b) => b.scoreBest - a.scoreBest);
         const userRank = sortedPlayers.findIndex(p => p.userId._id.toString() === userId) + 1;
 
@@ -32,11 +34,24 @@ const updateContestDetails = async (req, res) => {
             return res.status(404).json({ msg: 'User rank not found' });
         }
 
-        // Find ranks immediately above and below, if they exist
-        const higherRankPlayer = sortedPlayers[userRank - 2] || null; // User with one rank higher
-        const lowerRankPlayer = sortedPlayers[userRank] || null;      // User with one rank lower
+        const higherRankPlayer = sortedPlayers[userRank - 2] || null;
+        const lowerRankPlayer = sortedPlayers[userRank] || null;
 
+        // Helper function to determine prize based on rank from winByRank
+        const getPrizeForRank = (rank) => {
+            const prizeEntry = contest.winByRank.find(rankEntry => {
+                const [start, end] = rankEntry.rank.split('-').map(Number);
+                return rank >= start && rank <= end;
+            });
+            return prizeEntry ? prizeEntry.amount : null;
+        };
 
+        // Calculate prizes for user, higher rank, and lower rank players
+        const userPrize = getPrizeForRank(userRank);
+        const higherRankPrize = higherRankPlayer ? getPrizeForRank(userRank - 1) : null;
+        const lowerRankPrize = lowerRankPlayer ? getPrizeForRank(userRank + 1) : null;
+
+        // Return the response with prize details for user, higher and lower rank players
         return res.status(200).json({
             msg: 'Contest details retrieved successfully',
             data: {
@@ -46,7 +61,7 @@ const updateContestDetails = async (req, res) => {
                     userPhone: player.userId.mobile,
                     bestScore: player.scoreBest,
                     rank: userRank,
-                    prize: null
+                    prize: userPrize
                 },
                 higherRankPlayer: higherRankPlayer ? {
                     userId: higherRankPlayer.userId._id,
@@ -54,7 +69,7 @@ const updateContestDetails = async (req, res) => {
                     userPhone: higherRankPlayer.userId.mobile,
                     bestScore: higherRankPlayer.scoreBest,
                     rank: userRank - 1,
-                    prize: null
+                    prize: higherRankPrize
                 } : null,
                 lowerRankPlayer: lowerRankPlayer ? {
                     userId: lowerRankPlayer.userId._id,
@@ -62,12 +77,14 @@ const updateContestDetails = async (req, res) => {
                     userPhone: lowerRankPlayer.userId.mobile,
                     bestScore: lowerRankPlayer.scoreBest,
                     rank: userRank + 1,
-                    prize: null
+                    prize: lowerRankPrize
                 } : null,
             }
         });
+
     } catch (error) {
-        return res.status(500).json({ msg: 'Error retrieving contest details', error: error.message });
+        console.error(error);
+        return res.status(500).json({ msg: 'Server error' });
     }
 };
 
