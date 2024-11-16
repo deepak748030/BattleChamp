@@ -139,10 +139,39 @@ const contestJoinPlayerCheck = async (req, res) => {
         return res.status(500).json({ msg: 'Server error' });
     }
 };
+
+
+const getSortedPlayersByBestScore = async (req, res) => {
+    try {
+        const { contestId } = req.params;
+        const contestDetails = await ContestDetails.findOne({ contestId });
+
+        if (!contestDetails) {
+            return res.status(404).json({ msg: 'Contest details not found' });
+        }
+
+        const sortedPlayers = contestDetails.joinedPlayerData.sort((a, b) => b.scoreBest - a.scoreBest);
+
+        return res.status(200).json({
+            msg: 'Players sorted by best score successfully',
+            data: sortedPlayers.map((player, index) => ({
+                userId: player.userId._id,
+                name: player.userId.name,
+                scoreBest: player.scoreBest,
+                rank: index + 1
+            }))
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ msg: 'Server error' });
+    }
+};
+
 module.exports = {
     updateContestDetails,
     getContestDetailsByContestId,
-    contestJoinPlayerCheck
+    contestJoinPlayerCheck,
+    getSortedPlayersByBestScore
 };
 
 
