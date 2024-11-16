@@ -1,0 +1,33 @@
+# Node.js modules and logs
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+
+# Local development files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Git-related files
+.git
+.gitignore
+
+# Docker-specific files
+Dockerfile
+.dockerignore
+
+# Temporary files
+tmp/
+*.tmp
+*.log
+
+# Build output (if applicable)
+dist/
+build/
+
+# OS-specific files
+Thumbs.db
