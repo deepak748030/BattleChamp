@@ -156,7 +156,6 @@ const getSortedPlayersByBestScore = async (req, res) => {
             msg: 'Players sorted by best score successfully',
             data: sortedPlayers.map((player, index) => ({
                 userId: player.userId._id,
-                name: player.userId.name,
                 scoreBest: player.scoreBest,
                 rank: index + 1
             }))
