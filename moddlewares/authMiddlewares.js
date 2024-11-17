@@ -29,6 +29,7 @@ exports.isAdmin = async (req, res, next) => {
                 message: "UnAuthorized Access",
             });
         } else {
+
             next();
 
         }
