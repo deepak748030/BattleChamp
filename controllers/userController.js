@@ -234,7 +234,70 @@ const updateUser = async (req, res) => {
     }
 };
 
+// Get all users
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).json({
+            message: 'Users retrieved successfully',
+            users,
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
 
+// Block or unblock a user by userId
+const changeBlockStatus = async (req, res) => {
+    const { id } = req.params;
+    const { isBlocked } = req.body;
 
+    try {
+        const user = await User.findById(id);
 
-module.exports = { registerUser, loginUser, getUserById, updateUser };
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.isBlocked = isBlocked;
+        const updatedUser = await user.save();
+
+        res.status(200).json({
+            message: `User ${isBlocked ? 'blocked' : 'unblocked'} successfully`,
+            user: {
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                mobile: updatedUser.mobile,
+                isBlocked: updatedUser.isBlocked,
+                registerDate: updatedUser.registerDate,
+                winningWallet: updatedUser.winningWallet,
+                depositWallet: updatedUser.depositWallet,
+                bonusWallet: updatedUser.bonusWallet,
+                lifetimeWinning: updatedUser.lifetimeWinning,
+                type: updatedUser.type,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+// Delete a user by userId
+const deleteUser = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await User.findByIdAndDelete(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+module.exports = { registerUser, loginUser, getUserById, updateUser, getAllUsers, changeBlockStatus, deleteUser };
