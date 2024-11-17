@@ -11,7 +11,6 @@ const createContest = async (req, res) => {
             contestStartDate,
             matchStartTime,
             matchEndTime,
-            availableSlots,
             totalSlots,
             contestStatus,
             winByRank,
@@ -19,7 +18,7 @@ const createContest = async (req, res) => {
         } = req.body;
 
         // Check if all required fields are provided
-        if (!name || !gameId || !amount || !commission || !contestStartDate || !matchStartTime || !matchEndTime || !availableSlots || !totalSlots || !betType) {
+        if (!name || !gameId || !amount || !commission || !contestStartDate || !matchStartTime || !matchEndTime || !totalSlots || !betType) {
             return res.status(400).json({ msg: 'All fields are required' });
         }
 
@@ -32,7 +31,7 @@ const createContest = async (req, res) => {
             contestStartDate,
             matchStartTime,
             matchEndTime,
-            availableSlots,
+            availableSlots: 0, // Set availableSlots to 0
             totalSlots,
             contestStatus: contestStatus || 'upcoming',
             winByRank,
@@ -52,6 +51,7 @@ const createContest = async (req, res) => {
 
         return res.status(201).json({ msg: 'Contest created successfully', data: newContest });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ msg: 'Error creating contest', error: error.message });
     }
 };

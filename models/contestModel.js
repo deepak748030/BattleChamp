@@ -34,6 +34,7 @@ const contestSchema = new mongoose.Schema({
     availableSlots: {
         type: Number, // Number of available slots for the contest
         required: true,
+        default: 0, // Default value is 0
     },
     totalSlots: {
         type: Number, // Total number of slots in the contest
