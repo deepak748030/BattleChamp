@@ -80,7 +80,19 @@ const getContestsByGameId = async (req, res) => {
 const getAllContests = async (req, res) => {
     try {
         const contests = await Contest.find().populate('gameId'); // Populate game details using the gameId reference
-        res.status(200).json({ contests });
+        const formattedContests = contests.map(contest => ({
+            id: contest._id,
+            name: contest.name,
+            amount: contest.amount,
+            commission: contest.commission,
+            contestStartDate: contest.contestStartDate,
+            matchStartTime: contest.matchStartTime,
+            matchEndTime: contest.matchEndTime,
+            availableSlots: contest.availableSlots,
+            totalSlots: contest.totalSlots,
+            contestStatus: contest.contestStatus
+        }));
+        res.status(200).json({ contests: formattedContests });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching contests', error: error.message });
     }
