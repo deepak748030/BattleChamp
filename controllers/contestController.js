@@ -77,4 +77,61 @@ const getContestsByGameId = async (req, res) => {
     }
 };
 
-module.exports = { createContest, getContestsByGameId };
+const getAllContests = async (req, res) => {
+    try {
+        const contests = await Contest.find().populate('gameId'); // Populate game details using the gameId reference
+        res.status(200).json({ contests });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching contests', error: error.message });
+    }
+};
+
+const updateContest = async (req, res) => {
+    const { contestId } = req.params;
+    const updateData = req.body;
+
+    try {
+        const updatedContest = await Contest.findByIdAndUpdate(contestId, updateData, { new: true });
+
+        if (!updatedContest) {
+            return res.status(404).json({ message: 'Contest not found' });
+        }
+
+        res.status(200).json({ message: 'Contest updated successfully', contest: updatedContest });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating contest', error: error.message });
+    }
+};
+
+const deleteContest = async (req, res) => {
+    const { contestId } = req.params;
+
+    try {
+        const deletedContest = await Contest.findByIdAndDelete(contestId);
+
+        if (!deletedContest) {
+            return res.status(404).json({ message: 'Contest not found' });
+        }
+
+        res.status(200).json({ message: 'Contest deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting contest', error: error.message });
+    }
+};
+
+const getContestById = async (req, res) => {
+    const { contestId } = req.params;
+
+    try {
+        const contest = await Contest.findById(contestId).populate('gameId');
+
+        if (!contest) {
+            return res.status(404).json({ message: 'Contest not found' });
+        }
+
+        res.status(200).json({ contest });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching contest', error: error.message });
+    }
+};
+module.exports = { createContest, getContestsByGameId, getAllContests, getContestById, updateContest, deleteContest };
