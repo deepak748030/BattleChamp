@@ -1,5 +1,6 @@
 const express = require('express');
 const { adminSignup, adminLogin } = require('../controllers/admin');
+const { isAdmin, requireSignIn } = require('../moddlewares/authMiddlewares');
 
 const router = express.Router();
 ;
@@ -10,5 +11,7 @@ router.post('/admin/signup', adminSignup);
 // Login route
 router.post('/admin/login', adminLogin);
 
-
+router.get('/auth/check', requireSignIn, isAdmin, (req, res) => {
+    res.status(200).send({ ok: true });
+});
 module.exports = router;
