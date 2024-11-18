@@ -14,19 +14,44 @@ const getSettings = async (_, res) => {
     }
 };
 
-// Update settings
 const updateSettings = async (req, res) => {
     try {
-        const updatedSettings = await Settings.findOneAndUpdate({}, req.body, {
+        const updateData = { ...req.body };
+
+        // If an image is uploaded, add its URL to the `bannerImages` array
+        if (req.file) {
+            const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+            // Check if a settings document exists
+            const settings = await Settings.findOne({});
+
+            if (settings) {
+                // Append the image URL to the existing `bannerImages` array
+                settings.bannerImages.push(imageUrl);
+                await settings.save();
+            } else {
+                // If no settings document exists, create one with the image URL
+                updateData.bannerImages = [imageUrl];
+                await Settings.create(updateData);
+            }
+        }
+
+        // Update other settings fields
+        const updatedSettings = await Settings.findOneAndUpdate({}, updateData, {
             new: true,
             upsert: true, // Create a new document if none exists
         });
-        res.status(200).json(updatedSettings);
+
+        res.status(200).json({
+            message: 'Settings updated successfully.',
+            settings: updatedSettings,
+        });
     } catch (error) {
-        console.error("Error updating settings:", error);
-        res.status(500).json({ message: "Internal server error." });
+        console.error('Error updating settings:', error);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 };
+
 // Create settings
 const createSettings = async (req, res) => {
     try {

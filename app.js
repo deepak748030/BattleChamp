@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const cors = require('cors'); // Import the CORS middleware
 const connectDB = require('./config/db'); // Database connection
 const morgan = require('morgan');
+const path = require('path');
 const { initializeSocket } = require('./sockets/socketService'); // Import the initializeSocket function
 
 dotenv.config(); // Load environment variables
@@ -30,6 +31,8 @@ app.use(morgan('dev'));
 app.get('/', (req, res) => {
   res.send('Hello from the server!');
 });
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Use the user routes
 app.use('/api/user', require('./routes/usersRoutes'));
