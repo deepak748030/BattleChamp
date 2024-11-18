@@ -20,7 +20,7 @@ router.get('/alldata', getAllUsers);
 // Delete user by ID
 router.delete('/delete/:id', deleteUser);
 
-router.put('/update/:id', changeBlockStatus);
+router.put('/updateblock/:id', changeBlockStatus);
 
 
 module.exports = router;

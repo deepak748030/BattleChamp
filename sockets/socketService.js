@@ -27,10 +27,18 @@ const initializeSocket = (server) => {
 const sendMessageToSession = (sessionId, score) => {
     if (io && Socket) {
         Socket.join(sessionId); // Use the Socket variable here
-        io.to(sessionId).emit('recentScore', score); // Send message to the room
+        io.to(sessionId).emit(`${sessionId}`, score); // Send message to the room
     } else {
         console.error('Socket.io is not initialized or no client is connected');
     }
 };
 
-module.exports = { initializeSocket, sendMessageToSession };
+// Function to get the Socket.io instance
+const getIo = () => {
+    if (!io) {
+        throw new Error('Socket.io is not initialized');
+    }
+    return io;
+};
+
+module.exports = { initializeSocket, sendMessageToSession, getIo };
