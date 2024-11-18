@@ -13,9 +13,9 @@ router.get("/", getSettings); // Fetch settings
 router.put("/", updateSettings); // Update settings
 router.delete("/banner/:index", deleteBannerImage); // Delete a banner image by index
 // router.post("/create", createSettings);
-router.post("/scre", (req, res) => {
-    console.log('run')
-    sendMessageToSession('420', '10000')
-}); // Fetch settings
+// router.post("/scre", (req, res) => {
+//     console.log('run')
+//     sendMessageToSession('420', '10000')
+// }); // Fetch settings
 
 module.exports = router;

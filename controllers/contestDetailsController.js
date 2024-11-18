@@ -129,10 +129,10 @@ const contestJoinPlayerCheck = async (req, res) => {
         const player = contestDetails.joinedPlayerData.find(player => player.userId && player.userId._id.toString() === userId);
 
         if (!player || !player.userId) {
-            return res.status(404).send(false);
+            return res.status(200).json({ isJoined: false });
         }
 
-        return res.status(200).send(true);
+        return res.status(200).json({ isJoined: true });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ msg: 'Server error' });

@@ -27,7 +27,7 @@ const initializeSocket = (server) => {
 const sendMessageToSession = (sessionId, score) => {
     if (io && Socket) {
         Socket.join(sessionId); // Use the Socket variable here
-        io.to(sessionId).emit('room', score); // Send message to the room
+        io.to(sessionId).emit(`${sessionId}`, score); // Send message to the room
     } else {
         console.error('Socket.io is not initialized or no client is connected');
     }
