@@ -114,7 +114,6 @@ const getContestDetailsByContestId = async (req, res) => {
     }
 };
 
-
 const contestJoinPlayerCheck = async (req, res) => {
     const { contestId, userId } = req.body;
 
@@ -127,9 +126,9 @@ const contestJoinPlayerCheck = async (req, res) => {
         }
 
         // Check if the user has joined the contest
-        const player = contestDetails.joinedPlayerData.find(player => player.userId._id.toString() === userId);
+        const player = contestDetails.joinedPlayerData.find(player => player.userId && player.userId._id.toString() === userId);
 
-        if (!player) {
+        if (!player || !player.userId) {
             return res.status(404).send(false);
         }
 

@@ -2,32 +2,6 @@ const GameResult = require('../models/gameResult');
 const updateResult = require('../utils/scoreUpdate');
 const { sendMessageToSession } = require('../sockets/socketService'); // Ensure socket communication is handled in a separate service
 
-// Controller to save a new game result
-const saveGameResult = async (req, res) => {
-    try {
-        const { sessionId, userId, contestId, score } = req.body;
-
-        // Create a new GameResult object with the provided data
-        const newGameResult = new GameResult({
-            sessionId,
-            userId,
-            contestId,
-            score
-        });
-
-        // Save the new game result to the database
-        await newGameResult.save();
-
-        res.status(201).json({
-            message: 'Game result saved successfully',
-            data: newGameResult
-        });
-    } catch (err) {
-        console.error('Error saving game result:', err);
-        res.status(500).json({ message: 'Internal Server Error while saving game result' });
-    }
-};
-
 // Controller to update the score by sessionId
 const updateGameResultScore = async (req, res) => {
     try {
@@ -62,6 +36,34 @@ const updateGameResultScore = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error while updating game result' });
     }
 };
+
+// Controller to save a new game result
+const saveGameResult = async (req, res) => {
+    try {
+        const { sessionId, userId, contestId, score } = req.body;
+
+        // Create a new GameResult object with the provided data
+        const newGameResult = new GameResult({
+            sessionId,
+            userId,
+            contestId,
+            score
+        });
+
+        // Save the new game result to the database
+        await newGameResult.save();
+
+        res.status(201).json({
+            message: 'Game result saved successfully',
+            data: newGameResult
+        });
+    } catch (err) {
+        console.error('Error saving game result:', err);
+        res.status(500).json({ message: 'Internal Server Error while saving game result' });
+    }
+};
+
+
 
 module.exports = {
     saveGameResult,
