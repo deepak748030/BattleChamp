@@ -1,4 +1,6 @@
 const Settings = require("../models/settings.model");
+const fs = require('fs');
+const path = require('path');
 
 // Fetch settings
 const getSettings = async (_, res) => {
@@ -72,8 +74,21 @@ const deleteBannerImage = async (req, res) => {
         if (!settings || !settings.bannerImages[index]) {
             return res.status(404).json({ message: "Image not found." });
         }
+
+        // Get the image URL and delete the file from the server
+        const imageUrl = settings.bannerImages[index];
+        const imagePath = path.join(__dirname, '..', 'uploads', path.basename(imageUrl));
+        fs.unlink(imagePath, (err) => {
+            if (err) {
+                console.error("Error deleting image file:", err);
+                return res.status(500).json({ message: "Error deleting image file." });
+            }
+        });
+
+        // Remove the image URL from the bannerImages array
         settings.bannerImages.splice(index, 1);
         await settings.save();
+
         res.status(200).json({ message: "Image deleted successfully.", bannerImages: settings.bannerImages });
     } catch (error) {
         console.error("Error deleting banner image:", error);
