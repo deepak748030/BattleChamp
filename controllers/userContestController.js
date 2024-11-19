@@ -12,7 +12,7 @@ const joinUserContest = async (req, res) => {
         const alreadyJoined = await UserContest.findOne({ userId, contestId });
 
         if (alreadyJoined) {
-            return res.status(400).json({ msg: 'User has already joined this contest' });
+            return res.status(400).json({ status: false, message: 'User has already joined this contest' });
         }
 
         // Create a new UserContest entry
@@ -34,7 +34,7 @@ const joinUserContest = async (req, res) => {
 
         // If contest was not found or slots are full
         if (!contest) {
-            return res.status(400).json({ msg: 'No available slots for this contest' });
+            return res.status(400).json({ status: false, message: 'No available slots for this contest' });
         }
 
         // Emit the updated contest data using Socket.io
@@ -44,9 +44,9 @@ const joinUserContest = async (req, res) => {
             availableSlots: contest.availableSlots
         });
 
-        return res.status(201).json({ msg: 'User joined contest successfully', data: newUserContest });
+        res.status(201).json({ status: true, message: 'User joined contest successfully' });
     } catch (error) {
-        return res.status(500).json({ msg: 'Error joining contest', error: error.message });
+        return res.status(500).json({ status: false, message: 'Error joining contest', error: error.message });
     }
 };
 
