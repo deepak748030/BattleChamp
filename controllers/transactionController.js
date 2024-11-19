@@ -62,10 +62,8 @@ const withdrawMoney = async (req, res) => {
 
 const getTransactionsByType = async (req, res) => {
     try {
-        const { userId, type } = req.query;
-
+        const { userId, type } = req.params;
         const transactions = await Transaction.find({ userId, type });
-
         res.status(200).json({ success: true, transactions });
     } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -75,7 +73,7 @@ const getTransactionsByType = async (req, res) => {
 
 const getTransactionsByTypeOnly = async (req, res) => {
     try {
-        const { type } = req.query;
+        const { type } = req.params;
 
         const transactions = await Transaction.find({ type });
 
