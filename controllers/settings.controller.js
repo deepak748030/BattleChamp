@@ -1,13 +1,19 @@
 const Settings = require("../models/settings.model");
 const fs = require('fs');
 const path = require('path');
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
 // Fetch settings
 const getSettings = async (_, res) => {
     try {
-        const settings = await Settings.findOne(); // Assuming one settings document
+        let settings = cache.get("settings");
         if (!settings) {
-            return res.status(404).json({ message: "Settings not found." });
+            settings = await Settings.findOne(); // Assuming one settings document
+            if (!settings) {
+                return res.status(404).json({ message: "Settings not found." });
+            }
+            cache.set("settings", settings);
         }
         res.status(200).json(settings);
     } catch (error) {
@@ -44,6 +50,9 @@ const updateSettings = async (req, res) => {
             upsert: true, // Create a new document if none exists
         });
 
+        // Update the cache
+        cache.set("settings", updatedSettings);
+
         res.status(200).json({
             message: 'Settings updated successfully.',
             settings: updatedSettings,
@@ -59,6 +68,10 @@ const createSettings = async (req, res) => {
     try {
         const settings = new Settings(req.body);
         await settings.save();
+
+        // Update the cache
+        cache.set("settings", settings);
+
         res.status(201).json(settings);
     } catch (error) {
         console.error("Error creating settings:", error);
@@ -89,12 +102,14 @@ const deleteBannerImage = async (req, res) => {
         settings.bannerImages.splice(index, 1);
         await settings.save();
 
+        // Update the cache
+        cache.set("settings", settings);
+
         res.status(200).json({ message: "Image deleted successfully.", bannerImages: settings.bannerImages });
     } catch (error) {
         console.error("Error deleting banner image:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };
-
 
 module.exports = { deleteBannerImage, updateSettings, getSettings, createSettings }

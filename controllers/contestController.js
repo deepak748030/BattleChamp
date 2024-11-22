@@ -1,3 +1,6 @@
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
+
 const Contest = require('../models/contestModel'); // Updated import to Contest
 const ContestDetails = require('../models/contestDetailsModel'); // Import the ContestDetails model
 
@@ -49,6 +52,10 @@ const createContest = async (req, res) => {
 
         await contestDetailsEntry.save(); // Save the contest details entry
 
+        // Invalidate cache
+        cache.del('allContests');
+        cache.del(`contestsByGameId_${gameId}`);
+
         return res.status(201).json({ msg: 'Contest created successfully', data: newContest });
     } catch (error) {
         console.log(error);
@@ -56,12 +63,17 @@ const createContest = async (req, res) => {
     }
 };
 
-
 // GET /contest/:gameId - Get contests by Game ID
 const getContestsByGameId = async (req, res) => {
     const { gameId } = req.params;
 
     try {
+        // Check cache first
+        const cachedContests = cache.get(`contestsByGameId_${gameId}`);
+        if (cachedContests) {
+            return res.status(200).json({ msg: 'Contests retrieved successfully', data: cachedContests });
+        }
+
         // Fetch contests by gameId
         const contests = await Contest.find({ gameId });
 
@@ -70,6 +82,9 @@ const getContestsByGameId = async (req, res) => {
             return res.status(404).json({ msg: 'No contests found for this game' });
         }
 
+        // Cache the result
+        cache.set(`contestsByGameId_${gameId}`, contests);
+
         // Return the retrieved contests
         return res.status(200).json({ msg: 'Contests retrieved successfully', data: contests });
     } catch (error) {
@@ -77,10 +92,14 @@ const getContestsByGameId = async (req, res) => {
     }
 };
 
-
-
 const getAllContests = async (req, res) => {
     try {
+        // Check cache first
+        const cachedContests = cache.get('allContests');
+        if (cachedContests) {
+            return res.status(200).json({ contests: cachedContests });
+        }
+
         const contests = await Contest.find(); // Populate game details using the gameId reference
 
         const formatContestResponse = (contest) => {
@@ -98,17 +117,15 @@ const getAllContests = async (req, res) => {
             };
         };
         const formattedContests = contests.map(formatContestResponse);
-        res.status(200).json({ contests: formattedContests });
 
+        // Cache the result
+        cache.set('allContests', formattedContests);
+
+        res.status(200).json({ contests: formattedContests });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching contests', error: error.message });
     }
 };
-
-
-
-
-
 
 const updateContest = async (req, res) => {
     const { contestId } = req.params;
@@ -120,6 +137,10 @@ const updateContest = async (req, res) => {
         if (!updatedContest) {
             return res.status(404).json({ message: 'Contest not found' });
         }
+
+        // Invalidate cache
+        cache.del('allContests');
+        cache.del(`contestsByGameId_${updatedContest.gameId}`);
 
         res.status(200).json({ message: 'Contest updated successfully', contest: updatedContest });
     } catch (error) {
@@ -136,6 +157,10 @@ const deleteContest = async (req, res) => {
         if (!deletedContest) {
             return res.status(404).json({ message: 'Contest not found' });
         }
+
+        // Invalidate cache
+        cache.del('allContests');
+        cache.del(`contestsByGameId_${deletedContest.gameId}`);
 
         res.status(200).json({ message: 'Contest deleted successfully' });
     } catch (error) {
@@ -158,4 +183,5 @@ const getContestById = async (req, res) => {
         res.status(500).json({ message: 'Error fetching contest', error: error.message });
     }
 };
+
 module.exports = { createContest, getContestsByGameId, getAllContests, getContestById, updateContest, deleteContest };

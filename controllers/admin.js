@@ -1,5 +1,7 @@
 const Admin = require('../models/admin'); // Adjust the path as per your folder structure
 const jwt = require('jsonwebtoken');
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
 // Environment variables (configure these in your .env file)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -23,6 +25,7 @@ exports.adminSignup = async (req, res) => {
         });
 
         await newAdmin.save();
+        cache.set(mobile, newAdmin); // Cache the new admin
         return res.status(201).json({ message: 'Signup successful', admin: newAdmin });
     } catch (error) {
         console.error('Signup Error:', error);
@@ -35,10 +38,15 @@ exports.adminLogin = async (req, res) => {
     try {
         const { mobile, password } = req.body;
 
-        // Find the admin by mobile number
-        const admin = await Admin.findOne({ mobile });
+        // Check cache first
+        let admin = cache.get(mobile);
         if (!admin) {
-            return res.status(404).json({ message: 'Admin not found' });
+            // Find the admin by mobile number
+            admin = await Admin.findOne({ mobile });
+            if (!admin) {
+                return res.status(404).json({ message: 'Admin not found' });
+            }
+            cache.set(mobile, admin); // Cache the admin
         }
 
         // Check if the password matches the stored plaintext password

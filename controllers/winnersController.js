@@ -1,4 +1,6 @@
 const Winners = require('../models/winnersModel');
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
 // Function to create a new winning entry
 const createWinner = async (req, res) => {
@@ -17,6 +19,7 @@ const createWinner = async (req, res) => {
         });
 
         await newWinner.save();
+        cache.del(userId); // Invalidate cache for the user
         return res.status(201).json({ msg: 'Winner created successfully', data: newWinner });
     } catch (error) {
         return res.status(500).json({ msg: 'Error creating winner', error: error.message });
@@ -28,12 +31,18 @@ const getWinnersByUserId = async (req, res) => {
     const { userId } = req.params;
 
     try {
+        const cachedWinners = cache.get(userId);
+        if (cachedWinners) {
+            return res.status(200).json({ msg: 'Winners retrieved successfully', data: cachedWinners });
+        }
+
         const winners = await Winners.find({ userId });
 
         if (!winners || winners.length === 0) {
             return res.status(404).json({ msg: 'No winners found for this user' });
         }
 
+        cache.set(userId, winners); // Cache the result
         return res.status(200).json({ msg: 'Winners retrieved successfully', data: winners });
     } catch (error) {
         return res.status(500).json({ msg: 'Error fetching winners', error: error.message });

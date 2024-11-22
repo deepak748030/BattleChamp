@@ -1,4 +1,6 @@
-// POST /usercontest - Join a contest
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 600 }); // Cache TTL of 10 minutes
+
 const { getIo } = require('../sockets/socketService'); // Import the Socket.io instance
 const Contest = require('../models/contestModel'); // Import Contest model
 const ContestDetails = require('../models/contestDetailsModel'); // Import ContestDetails model if required
@@ -44,6 +46,9 @@ const joinUserContest = async (req, res) => {
             availableSlots: contest.availableSlots
         });
 
+        // Invalidate the cache for the user's contests
+        cache.del(userId);
+
         res.status(201).json({ status: true, message: 'User joined contest successfully' });
     } catch (error) {
         return res.status(500).json({ status: false, message: 'Error joining contest', error: error.message });
@@ -55,6 +60,12 @@ const getContestsByUserId = async (req, res) => {
     const { userId } = req.params;
 
     try {
+        // Check if the data is in the cache
+        const cachedData = cache.get(userId);
+        if (cachedData) {
+            return res.status(200).json({ msg: 'User contests retrieved successfully', data: cachedData });
+        }
+
         // Populate both userId (referencing User model) and contestId (referencing Slots model)
         const userContests = await UserContest.find({ userId })   // Populates the user details from User model
             .populate('contestId'); // Populates the contest details from Slots model
@@ -62,6 +73,9 @@ const getContestsByUserId = async (req, res) => {
         if (!userContests || userContests.length === 0) {
             return res.status(404).json({ msg: 'No contests found for this user' });
         }
+
+        // Store the data in the cache
+        cache.set(userId, userContests);
 
         return res.status(200).json({ msg: 'User contests retrieved successfully', data: userContests });
     } catch (error) {

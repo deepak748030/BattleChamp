@@ -1,4 +1,6 @@
 const Transaction = require('../models/transaction');
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
 const placeBet = async (req, res) => {
     try {
@@ -63,7 +65,15 @@ const withdrawMoney = async (req, res) => {
 const getTransactionsByType = async (req, res) => {
     try {
         const { userId, type } = req.params;
+        const cacheKey = `transactions_${userId}_${type}`;
+        const cachedTransactions = cache.get(cacheKey);
+
+        if (cachedTransactions) {
+            return res.status(200).json({ success: true, transactions: cachedTransactions });
+        }
+
         const transactions = await Transaction.find({ userId, type });
+        cache.set(cacheKey, transactions);
         res.status(200).json({ success: true, transactions });
     } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -74,9 +84,15 @@ const getTransactionsByType = async (req, res) => {
 const getTransactionsByTypeOnly = async (req, res) => {
     try {
         const { type } = req.params;
+        const cacheKey = `transactions_${type}`;
+        const cachedTransactions = cache.get(cacheKey);
+
+        if (cachedTransactions) {
+            return res.status(200).json({ success: true, transactions: cachedTransactions });
+        }
 
         const transactions = await Transaction.find({ type });
-
+        cache.set(cacheKey, transactions);
         res.status(200).json({ success: true, transactions });
     } catch (error) {
         console.error('Error fetching transactions:', error);
