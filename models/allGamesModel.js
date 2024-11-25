@@ -13,6 +13,11 @@ const allGamesSchema = new mongoose.Schema({
     url: {
         type: String,
         required: true, // URL for the game
+    },
+    orientation: {
+        type: String,
+        required: true, // URL for the gam
+        enum: ['landscape', 'portrait'],
     }
 });
 

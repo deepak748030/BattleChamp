@@ -5,7 +5,7 @@ const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 // POST /allgames - Create a new game
 const createAllGame = async (req, res) => {
     try {
-        const { gameName, image, url } = req.body;
+        const { gameName, image, url, orientation } = req.body;
 
         // Validate input
         if (!gameName || !image || !url) {
@@ -13,7 +13,7 @@ const createAllGame = async (req, res) => {
         }
 
         // Create new game
-        const newGame = new AllGames({ gameName, image, url });
+        const newGame = new AllGames({ gameName, image, url, orientation });
         await newGame.save();
 
         // Invalidate cache
