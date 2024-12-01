@@ -27,7 +27,7 @@ const getLeaderboardByContestId = async (req, res) => {
             cache.set(cacheKey, sortedPlayers);
         }
 
-        return res.status(200).json({ msg: 'Leaderboard fetched successfully', data: sortedPlayers });
+        return res.status(200).json({ msg: 'Leaderboard fetched successfully', data:contestDetails });
     } catch (error) {
         return res.status(500).json({ msg: 'Error fetching leaderboard', error: error.message });
     }
