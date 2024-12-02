@@ -5,7 +5,7 @@ const router = express.Router();
 
 // GET /leaderboard/:contestId - Fetch leaderboard for a specific contest
 router.get('/leaderboard/:contestId', getLeaderboardByContestId);
-
+  
 // GET /leaderboard/weekly - Fetch weekly leaderboard
 router.get('/leaderboard/weekly', getWeeklyLeaderboard);
 

@@ -6,14 +6,18 @@ const moment = require('moment');
 const getLeaderboardByContestId = async (req, res) => {
     const { contestId } = req.params;
 
-    try {
+    try { 
         // Fetch contest details with matching contestId
-        const contestDetails = await ContestDetails.findOne({ contestId });
+        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId',"name email mobile lifetimeWinning").exec();
 
+
+    //     ContestDetails.findOne({ contestId })
+    // .populate('data.userId', 'username email') // Populate userId field with 'username' and 'email'
+    // .exec();
         if (!contestDetails || contestDetails.joinedPlayerData.length === 0) {
             return res.status(404).json({ msg: 'No data found for this contest' });
         }
-
+  
         // Sort the players by bestScore in descending order
         const sortedPlayers = contestDetails.joinedPlayerData.sort((a, b) => b.bestScore - a.bestScore);
 
