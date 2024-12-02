@@ -10,20 +10,6 @@ const getLeaderboardByContestId = async (req, res) => {
         // Fetch contest details with matching contestId
         const contestDetails = await ContestDetails.findOne({ contestId });
 
-<<<<<<< HEAD
-            if (!contestDetails || contestDetails.joinedPlayerData.length == 0) {
-                return res.status(404).json({ msg: 'No data found for this contest' });
-            }
-
-            // Sort the players by bestScore in descending order
-            sortedPlayers = contestDetails.joinedPlayersData.sort((a, b) => b.bestScore - a.bestScore);
-
-            // Store sorted players in cache
-            cache.set(cacheKey, sortedPlayers);
-        }
-
-        return res.status(200).json({ msg: 'Leaderboard fetched successfully', data:contestDetails });
-=======
         if (!contestDetails || contestDetails.joinedPlayerData.length === 0) {
             return res.status(404).json({ msg: 'No data found for this contest' });
         }
@@ -32,7 +18,6 @@ const getLeaderboardByContestId = async (req, res) => {
         const sortedPlayers = contestDetails.joinedPlayersData.sort((a, b) => b.bestScore - a.bestScore);
 
         return res.status(200).json({ msg: 'Leaderboard fetched successfully', data: sortedPlayers });
->>>>>>> parent of 7a5dc48 (add node-cache to improve performance)
     } catch (error) {
         return res.status(500).json({ msg: 'Error fetching leaderboard', error: error.message });
     }
