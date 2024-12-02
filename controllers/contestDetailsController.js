@@ -1,22 +1,12 @@
-const NodeCache = require('node-cache');
-const cache = new NodeCache({ stdTTL: 600 }); // Cache TTL of 10 minutes
-
 const ContestDetails = require('../models/contestDetailsModel');
-const Contest = require('../models/contestModel');
+const Contest = require('../models/contestModel')
 
 const updateContestDetails = async (req, res) => {
     const { contestId, userId } = req.body;
-    const cacheKey = `contestDetails_${contestId}`;
 
     try {
-        let contestDetails = cache.get(cacheKey);
-        if (!contestDetails) {
-            contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
-            if (contestDetails) {
-                cache.set(cacheKey, contestDetails);
-            }
-        }
-
+        // Fetch contest and winByRank array
+        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
         const contest = await Contest.findById(contestId);
 
         if (!contestDetails) {
@@ -48,6 +38,7 @@ const updateContestDetails = async (req, res) => {
         const higherRankPlayer = sortedPlayers[userRank - 2] || null;
         const lowerRankPlayer = sortedPlayers[userRank] || null;
 
+        // Helper function to determine prize based on rank from winByRank
         const getPrizeForRank = (rank) => {
             const prizeEntry = contest.winByRank.find(rankEntry => {
                 const [start, end] = rankEntry.rank.split('-').map(Number);
@@ -56,10 +47,12 @@ const updateContestDetails = async (req, res) => {
             return prizeEntry ? prizeEntry.amount : null;
         };
 
+        // Calculate prizes for user, higher rank, and lower rank players
         const userPrize = getPrizeForRank(userRank);
         const higherRankPrize = higherRankPlayer ? getPrizeForRank(userRank - 1) : null;
         const lowerRankPrize = lowerRankPlayer ? getPrizeForRank(userRank + 1) : null;
 
+        // Return the response with prize details for user, higher and lower rank players
         return res.status(200).json({
             msg: 'Contest details retrieved successfully',
             data: {
@@ -96,21 +89,21 @@ const updateContestDetails = async (req, res) => {
     }
 };
 
-const getContestDetailsByContestId = async (req, res) => {
-    const { contestId } = req.params;
-    const cacheKey = `contestDetails_${contestId}`;
 
+
+
+
+
+// GET /contestdetails/:contestId - Get contest details by contest ID
+const getContestDetailsByContestId = async (req, res) => {
     try {
-        let contestDetails = cache.get(cacheKey);
-        if (!contestDetails) {
-            contestDetails = await ContestDetails.findOne({ contestId })
-                .populate('contestId')
-                .populate('joinedPlayerData.userId')
-                .select('joinedPlayerData');
-            if (contestDetails) {
-                cache.set(cacheKey, contestDetails);
-            }
-        }
+        const { contestId } = req.params;
+
+        // Find contest details by contestId and populate data
+        const contestDetails = await ContestDetails.findOne({ contestId })
+            .populate('contestId')
+            .populate('joinedPlayerData.userId')
+            .select('joinedPlayerData');
 
         if (!contestDetails) {
             return res.status(404).json({ msg: 'Contest details not found for the given contest ID' });
@@ -123,21 +116,16 @@ const getContestDetailsByContestId = async (req, res) => {
 
 const contestJoinPlayerCheck = async (req, res) => {
     const { contestId, userId } = req.body;
-    const cacheKey = `contestDetails_${contestId}`;
 
     try {
-        let contestDetails = cache.get(cacheKey);
-        if (!contestDetails) {
-            contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
-            if (contestDetails) {
-                cache.set(cacheKey, contestDetails);
-            }
-        }
+        // Find contest details by contestId
+        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
 
         if (!contestDetails) {
             return res.status(404).json({ msg: 'Contest details not found' });
         }
 
+        // Check if the user has joined the contest
         const player = contestDetails.joinedPlayerData.find(player => player.userId && player.userId._id.toString() === userId);
 
         if (!player || !player.userId) {
@@ -151,18 +139,11 @@ const contestJoinPlayerCheck = async (req, res) => {
     }
 };
 
-const getSortedPlayersByBestScore = async (req, res) => {
-    const { contestId } = req.params;
-    const cacheKey = `contestDetails_${contestId}`;
 
+const getSortedPlayersByBestScore = async (req, res) => {
     try {
-        let contestDetails = cache.get(cacheKey);
-        if (!contestDetails) {
-            contestDetails = await ContestDetails.findOne({ contestId });
-            if (contestDetails) {
-                cache.set(cacheKey, contestDetails);
-            }
-        }
+        const { contestId } = req.params;
+        const contestDetails = await ContestDetails.findOne({ contestId });
 
         if (!contestDetails) {
             return res.status(404).json({ msg: 'Contest details not found' });
@@ -190,3 +171,5 @@ module.exports = {
     contestJoinPlayerCheck,
     getSortedPlayersByBestScore
 };
+
+
