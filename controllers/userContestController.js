@@ -7,22 +7,22 @@ const UserContest = require('../models/userContestModel'); // Import UserContest
 const joinUserContest = async (req, res) => {
     try {
         const { userId, contestId } = req.body;
-
+ 
         // Check if the user has already joined the contest
         const alreadyJoined = await UserContest.findOne({ userId, contestId });
 
         if (alreadyJoined) {
             return res.status(400).json({ status: false, message: 'User has already joined this contest' });
         }
-
+// problem
         // Create a new UserContest entry
         const newUserContest = new UserContest({ userId, contestId });
         await newUserContest.save();
 
         // Update the contestDetails by adding userId to the joinedPlayersData array
-        await ContestDetails.updateOne(
+        await ContestDetails.findOneAndUpdate(
             { contestId }, // Match the contestId
-            { $addToSet: { joinedPlayersData: userId } } // Add userId to joinedPlayersData array, avoiding duplicates
+            { $addToSet: { joinedPlayerData: userId } } // Add userId to joinedPlayersData array, avoiding duplicates
         );
 
         // Reduce the available slots in the Contest model
