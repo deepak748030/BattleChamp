@@ -15,7 +15,7 @@ const getLeaderboardByContestId = async (req, res) => {
         }
 
         // Sort the players by bestScore in descending order
-        const sortedPlayers = contestDetails.joinedPlayersData.sort((a, b) => b.bestScore - a.bestScore);
+        const sortedPlayers = contestDetails.joinedPlayerData.sort((a, b) => b.bestScore - a.bestScore);
 
         return res.status(200).json({ msg: 'Leaderboard fetched successfully', data: sortedPlayers });
     } catch (error) {
