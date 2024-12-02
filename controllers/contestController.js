@@ -14,7 +14,8 @@ const createContest = async (req, res) => {
             totalSlots,
             contestStatus,
             winByRank,
-            betType // Add the betType field from the request body
+            availableSlots,
+            betType, // Add the betType field from the request body
         } = req.body;
 
         // Check if all required fields are provided
@@ -31,7 +32,7 @@ const createContest = async (req, res) => {
             contestStartDate,
             matchStartTime,
             matchEndTime,
-            availableSlots: 0, // Set availableSlots to 0
+            availableSlots, 
             totalSlots,
             contestStatus: contestStatus || 'upcoming',
             winByRank,

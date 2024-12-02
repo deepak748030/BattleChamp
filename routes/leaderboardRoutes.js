@@ -13,3 +13,4 @@ router.get('/leaderboard/weekly', getWeeklyLeaderboard);
 router.get('/leaderboard/monthly', getMonthlyLeaderboard);
 
 module.exports = router;
+ 
