@@ -22,7 +22,7 @@ const joinUserContest = async (req, res) => {
         // Update the contestDetails by adding userId to the joinedPlayersData array
         await ContestDetails.findOneAndUpdate(
             { contestId }, // Match the contestId
-            { $addToSet: { joinedPlayerData: userId } } // Add userId to joinedPlayersData array, avoiding duplicates
+            { $addToSet: [{ joinedPlayerData: userId } ]} // Add userId to joinedPlayersData array, avoiding duplicates
         );
 
         // Reduce the available slots in the Contest model
