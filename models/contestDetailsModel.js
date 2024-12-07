@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const contestDetailsSchema = new mongoose.Schema({
     contestId: {
         type: String,
-        required: true,
+        required: true, 
     },
     joinedPlayerData: [
         {

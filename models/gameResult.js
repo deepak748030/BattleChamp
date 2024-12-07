@@ -7,7 +7,7 @@ const gameResultSchema = new mongoose.Schema({
     score: { type: Number, required: true, default: 0 } // changed to Number
 }, {
     timestamps: true // automatically adds createdAt and updatedAt fields
-});
+}); 
 
 const GameResult = mongoose.model('GameResult', gameResultSchema);
 

@@ -1,10 +1,14 @@
 const ContestDetails = require('../models/contestDetailsModel');
 const Contest = require('../models/contestModel')
-
+const updateResult = require("../utils/scoreUpdate")
 const updateContestDetails = async (req, res) => {
-    const { contestId, userId } = req.body;
-
+    const { contestId, userId,score } = req.body;
+ 
     try {
+        let details = updateResult( contestId, userId,score );
+        if (!details) {
+            return res.status(404).json({msg:"something is wrong in function"});
+        }
         // Fetch contest and winByRank array
         const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
         const contest = await Contest.findById(contestId);
@@ -37,7 +41,7 @@ const updateContestDetails = async (req, res) => {
 
         const higherRankPlayer = sortedPlayers[userRank - 2] || null;
         const lowerRankPlayer = sortedPlayers[userRank] || null;
-
+ 
         // Helper function to determine prize based on rank from winByRank
         const getPrizeForRank = (rank) => {
             const prizeEntry = contest.winByRank.find(rankEntry => {

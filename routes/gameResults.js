@@ -4,9 +4,9 @@ const { saveGameResult, updateGameResultScore } = require('../controllers/gameRe
 const router = express.Router();
 
 // POST route to save a new game result
-router.post('/gameResults', saveGameResult);
+router.post('/gameResults', saveGameResult); 
 
 // PUT route to update the score by sessionId
-router.put('/gameResults/:sessionId', updateGameResultScore);
+// router.put('/gameResults/:sessionId', updateGameResultScore);
 
 module.exports = router;

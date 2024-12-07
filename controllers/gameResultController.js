@@ -5,31 +5,32 @@ const { sendMessageToSession } = require('../sockets/socketService'); // Ensure 
 // Controller to update the score by sessionId
 const updateGameResultScore = async (req, res) => {
     try {
-        const { sessionId } = req.params;
-        const { score } = req.body;
+        // const { sessionId } = req.params;
+        const { score,userId,contestId } = req.body;
 
-        // Find and update the game result by sessionId
-        const updatedGameResult = await GameResult.findOneAndUpdate(
-            { sessionId },
-            { score },
-            { new: true }
-        );
+        // Find and update the game result by sessionId      // no need
+        // const updatedGameResult = await GameResult.findOneAndUpdate( 
+        //     { sessionId },
+        //     { score }, 
+        //     { new: true }
+        // );
 
-        if (!updatedGameResult) {
-            return res.status(404).json({ message: 'Game result not found for the provided sessionId' });
-        }
+        // if (!updatedGameResult) {
+        //     return res.status(404).json({ message: 'Game result not found for the provided sessionId' });
+        // }
 
         // Update the contest score using a utility function
-        const updatedData = await updateResult(updatedGameResult.contestId, updatedGameResult.userId, updatedGameResult.score);
+        // const updatedData = await updateResult(updatedGameResult.contestId, updatedGameResult.userId, updatedGameResult.score); // no need
+        const updatedData = await updateResult(contestId,userId, score);
         // console.log('Updated contest data:', score);
 
         // Send the updated data to all users in the session room via socket.io
-        sendMessageToSession(sessionId, score);
+        // sendMessageToSession(sessionId, score);  // no need
 
         // Return a successful response with the updated game result
         res.status(200).json({
             message: 'Game result updated successfully',
-            data: updatedGameResult
+            data: updatedData
         });
     } catch (err) {
         console.error('Error updating game result:', err);
