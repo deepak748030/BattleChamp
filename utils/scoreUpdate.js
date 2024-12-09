@@ -64,7 +64,7 @@ const updateResult = async (contestId, userId, newScore) => {
                      }
                  },
                  { new: true }
-             );
+             ); 
              return true;
            }
         }

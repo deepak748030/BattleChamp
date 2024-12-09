@@ -5,11 +5,12 @@ const updateContestDetails = async (req, res) => {
     const { contestId, userId,score } = req.body;
  
     try {
-        let details = updateResult( contestId, userId,score );
+        let details = await updateResult( contestId, userId,score );
         if (!details) {
-            return res.status(404).json({msg:"something is wrong in function"});
+            return res.status(404).json({msg:"something is wrong in function , updateResult - ./utlis/scoreUpdate"});
         }
-        // Fetch contest and winByRank array
+        if (details) {
+                    // Fetch contest and winByRank array
         const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
         const contest = await Contest.findById(contestId);
 
@@ -86,7 +87,7 @@ const updateContestDetails = async (req, res) => {
                 } : null,
             }
         });
-
+        }
     } catch (error) {
         console.error(error);
         return res.status(500).json({ msg: 'Server error' });

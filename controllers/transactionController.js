@@ -1,5 +1,6 @@
+const transaction = require('../models/transaction');
 const Transaction = require('../models/transaction');
-
+const User = require("../models/userModel")
 const placeBet = async (req, res) => {
     try {
         const { userId, gameName, contestId, result } = req.body;
@@ -23,20 +24,25 @@ const placeBet = async (req, res) => {
 const addMoney = async (req, res) => {
     try {
         const { userId, amount, method, payId } = req.body;
-
-        const transaction = new Transaction({
-            userId,
-            type: 'MoneyAdd',
-            amount,
-            method,
-            payId,
-        });
-
-        await transaction.save();
-        res.status(201).json({ success: true, transaction });
+     
+            const transaction = new Transaction({
+                userId,
+                type: 'MoneyAdd',
+                amount,
+                method,
+                payId,
+            })
+            await transaction.save();
+            
+            // find user for add money in user account 
+            const user = await User.findOne({userId});
+            user.depositWallet += amount; 
+            await user.save();
+            return res.status(201).json({ success: true, transaction });
+        
     } catch (error) {
         console.error('Error adding money:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -44,16 +50,25 @@ const withdrawMoney = async (req, res) => {
     try {
         const { userId, amount, method, payId } = req.body;
 
-        const transaction = new Transaction({
-            userId,
-            type: 'Withdraw',
-            amount,
-            method,
-            payId,
-        });
+        const user = await User.findOne({userId});
+        if (user.winningWallet >= amount) {
+            const transaction = new Transaction({
+                userId,
+                type: 'Withdraw',
+                amount,
+                method,
+                payId,
+            });
+            await transaction.save();
+            user.winningWallet -= amount;
+            await user.save()
+          return res.status(201).json({ success: true, transaction , output : "withdraw successful"});
+        }
+        else{
+            return res.json({success:false,transaction:`not enough balance , your winning  is ${user.winningWallet}, for withdraw`})
+        }
 
-        await transaction.save();
-        res.status(201).json({ success: true, transaction });
+        
     } catch (error) {
         console.error('Error withdrawing money:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
