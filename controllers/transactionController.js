@@ -80,7 +80,7 @@ const addMoney = async (req, res) => {
 
 const withdrawMoney = async (req, res) => {
     try {
-        const { userId, amount, method, payId } = req.body;
+        const { userId, amount, method, payId, status } = req.body;
 
         const user = await User.findOne({ userId });
         if (user.winningWallet >= amount) {
@@ -90,6 +90,7 @@ const withdrawMoney = async (req, res) => {
                 amount,
                 method,
                 payId,
+                status
             });
             await transaction.save();
             user.winningWallet -= amount;
