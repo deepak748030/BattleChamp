@@ -50,7 +50,7 @@ const placeBet = async (req, res) => {
 
 const addMoney = async (req, res) => {
     try {
-        const { userId, amount, method, payId } = req.body;
+        const { userId, amount, method, payId ,status} = req.body;
 
         // Find the user by ID
         const user = await User.findById(userId);
@@ -69,6 +69,7 @@ const addMoney = async (req, res) => {
             amount,
             method,
             payId,
+            status
         });
 
         await transaction.save();
