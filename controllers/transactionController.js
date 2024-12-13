@@ -116,7 +116,7 @@ const withdrawMoney = async (req, res) => {
         res.status(201).json({ success: true, transaction, message: 'Withdrawal successful' });
     } catch (error) {
         console.error('Error withdrawing money:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: 'Internal server error' ,error});
     }
 };
 
