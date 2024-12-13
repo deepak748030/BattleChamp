@@ -1,7 +1,5 @@
-const transaction = require('../models/transaction');
 const Transaction = require('../models/transaction');
-const User = require("../models/userModel")
-
+const User = require('../models/userModel');
 
 const placeBet = async (req, res) => {
     try {
@@ -9,12 +7,11 @@ const placeBet = async (req, res) => {
 
         // Find the user by ID
         const user = await User.findById(userId);
-
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Check if user has enough balance
+        // Check if the user has enough balance
         const totalBalance = user.depositWallet + user.winningWallet;
         if (amount > totalBalance) {
             return res.status(400).json({ success: false, message: 'Insufficient balance' });
@@ -24,7 +21,6 @@ const placeBet = async (req, res) => {
         if (amount <= user.depositWallet) {
             user.depositWallet -= amount;
         } else {
-            // Deduct remaining from winning wallet
             const remainingAmount = amount - user.depositWallet;
             user.depositWallet = 0;
             user.winningWallet -= remainingAmount;
@@ -52,29 +48,35 @@ const placeBet = async (req, res) => {
     }
 };
 
-
 const addMoney = async (req, res) => {
     try {
         const { userId, amount, method, payId } = req.body;
 
+        // Find the user by ID
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Add money to the deposit wallet
+        user.depositWallet += amount;
+        await user.save();
+
+        // Create a transaction for the added money
         const transaction = new Transaction({
             userId,
             type: 'MoneyAdd',
             amount,
             method,
             payId,
-        })
+        });
+
         await transaction.save();
 
-        // find user for add money in user account 
-        const user = await User.findOne({ userId });
-        user.depositWallet += amount;
-        await user.save();
-        return res.status(201).json({ success: true, transaction });
-
+        res.status(201).json({ success: true, transaction });
     } catch (error) {
         console.error('Error adding money:', error);
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
@@ -90,7 +92,6 @@ const withdrawMoney = async (req, res) => {
                 amount,
                 method,
                 payId,
-                status
             });
             await transaction.save();
             user.winningWallet -= amount;
@@ -104,14 +105,17 @@ const withdrawMoney = async (req, res) => {
 
     } catch (error) {
         console.error('Error withdrawing money:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' ,error});
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
 
 const getTransactionsByType = async (req, res) => {
     try {
         const { userId, type } = req.params;
+
+        // Find transactions by user ID and type
         const transactions = await Transaction.find({ userId, type });
+
         res.status(200).json({ success: true, transactions });
     } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -123,6 +127,7 @@ const getTransactionsByTypeOnly = async (req, res) => {
     try {
         const { type } = req.params;
 
+        // Find transactions by type
         const transactions = await Transaction.find({ type });
 
         res.status(200).json({ success: true, transactions });
