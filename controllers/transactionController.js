@@ -84,9 +84,12 @@ const addMoney = async (req, res) => {
 const withdrawMoney = async (req, res) => {
     try {
         const { userId, amount, method, payId, status } = req.body;
-
-        const user = await User.findOne({ userId });
-        if (user.winningWallet >= amount) {
+        console.log(status);
+        
+        const user = await User.findById(userId);
+        console.log(user);
+        
+        if (user?.winningWallet >= amount) {
             const transaction = new Transaction({
                 userId,
                 type: 'Withdraw',
@@ -94,20 +97,20 @@ const withdrawMoney = async (req, res) => {
                 method,
                 payId,
                 status
-            });
+            }); 
             await transaction.save();
             user.winningWallet -= amount;
             await user.save()
             return res.status(201).json({ success: true, transaction, output: "withdraw successful" });
         }
         else {
-            return res.json({ success: false, transaction: `not enough balance , your winning  is ${user.winningWallet}, for withdraw` })
+            return res.json({ success: false, transaction: `not enough balance , your winning  is ${user?.winningWallet}, for withdraw` })
         }
 
 
     } catch (error) {
         console.error('Error withdrawing money:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: 'Internal server error',error });
     }
 };
 
