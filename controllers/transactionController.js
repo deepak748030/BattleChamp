@@ -92,6 +92,7 @@ const withdrawMoney = async (req, res) => {
                 amount,
                 method,
                 payId,
+                status
             });
             await transaction.save();
             user.winningWallet -= amount;
