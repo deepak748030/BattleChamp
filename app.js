@@ -6,6 +6,7 @@ const connectDB = require('./config/db'); // Database connection
 const morgan = require('morgan');
 const path = require('path');
 const { initializeSocket } = require('./sockets/socketService'); // Import the initializeSocket function
+const distributePrizes = require('./utils/prizeDistribution');
 
 dotenv.config(); // Load environment variables
 
@@ -14,7 +15,6 @@ const server = http.createServer(app); // Create server with http
 
 // Connect to the database
 connectDB();
-
 // Enable CORS for all routes with additional options
 app.use(cors({
   origin: process.env.CLIENT_URL || '*', // Allow only specific origin
