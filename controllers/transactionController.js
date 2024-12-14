@@ -50,7 +50,7 @@ const placeBet = async (req, res) => {
 
 const addMoney = async (req, res) => {
     try {
-        const { userId, amount, method, payId } = req.body;
+        const { userId, amount, method, payId ,status} = req.body;
 
         // Find the user by ID
         const user = await User.findById(userId);
@@ -69,6 +69,7 @@ const addMoney = async (req, res) => {
             amount,
             method,
             payId,
+            status
         });
 
         await transaction.save();
@@ -82,41 +83,34 @@ const addMoney = async (req, res) => {
 
 const withdrawMoney = async (req, res) => {
     try {
-        const { userId, amount, method, payId } = req.body;
-
-        // Find the user by ID
+        const { userId, amount, method, payId, status } = req.body;
+        console.log(status);
+        
         const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
+        console.log(user);
+        
+        if (user?.winningWallet >= amount) {
+            const transaction = new Transaction({
+                userId,
+                type: 'Withdraw',
+                amount,
+                method,
+                payId,
+                status
+            }); 
+            await transaction.save();
+            user.winningWallet -= amount;
+            await user.save()
+            return res.status(201).json({ success: true, transaction, output: "withdraw successful" });
+        }
+        else {
+            return res.json({ success: false, transaction: `not enough balance , your winning  is ${user?.winningWallet}, for withdraw` })
         }
 
-        // Check if the user has enough balance in the winning wallet
-        if (amount > user.winningWallet) {
-            return res.status(400).json({
-                success: false,
-                message: `Insufficient balance. Your winning wallet balance is ${user.winningWallet}.`,
-            });
-        }
 
-        // Deduct the amount from the winning wallet
-        user.winningWallet -= amount;
-        await user.save();
-
-        // Create a transaction for the withdrawal
-        const transaction = new Transaction({
-            userId,
-            type: 'Withdraw',
-            amount,
-            method,
-            payId,
-        });
-
-        await transaction.save();
-
-        res.status(201).json({ success: true, transaction, message: 'Withdrawal successful' });
     } catch (error) {
         console.error('Error withdrawing money:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: 'Internal server error',error });
     }
 };
 
