@@ -6,7 +6,8 @@ const connectDB = require('./config/db'); // Database connection
 const morgan = require('morgan');
 const path = require('path');
 const { initializeSocket } = require('./sockets/socketService'); // Import the initializeSocket function
-const distributePrizes = require('./utils/prizeDistribution');
+const { simulateBotPushToRank } = require('./utils/prizeDistribution');
+require('./utils/contestStatus')
 
 dotenv.config(); // Load environment variables
 

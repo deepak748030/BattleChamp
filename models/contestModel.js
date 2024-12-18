@@ -61,7 +61,7 @@ const contestSchema = new mongoose.Schema({
     betType: { // New betType field added
         type: String, // Type of bet (either "token" or "money")
         enum: ['token', 'money'], // Restrict values to "token" or "money"
-        required: true
+        // required: true
     }
 }, { timestamps: true });
 

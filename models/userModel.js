@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
- 
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -56,10 +56,15 @@ const userSchema = new mongoose.Schema({
         default: 0,  // Lifetime winnings start at 0
         min: [0, 'Lifetime winnings cannot be negative'],  // Ensure no negative values
     },
-    type: {
-        type: Number,
-        enum: [0, 1],  // Type can only be 0 or 1
-        default: 0,  // Default type is 0
+    role: {
+        type: String,
+        enum: ['user', 'admin', 'bot'],  // Role can be 'user', 'admin', or 'bot'
+        default: 'user',  // Default role is 'user'
+    },
+    referCode: {
+        type: String,
+        trim: true,  // Removes extra spaces from the refer code
+        default: '', // Refer code can be empty
     }
 });
 
