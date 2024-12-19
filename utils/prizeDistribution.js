@@ -1,7 +1,7 @@
 const ContestDetails = require('../models/contestDetailsModel');
 const Contest = require('../models/contestModel');
 const cron = require('node-cron'); // For scheduling the function to run periodically
-const { processContestData } = require('./botAdd');
+const { processContestData } = require('./botScoreUpdate');
 async function distributePrizesForAllContests() {
     try {
         // Fetch all contests from the database

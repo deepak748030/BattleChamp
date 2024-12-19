@@ -7,7 +7,8 @@ const morgan = require('morgan');
 const path = require('path');
 const { initializeSocket } = require('./sockets/socketService'); // Import the initializeSocket function
 const { simulateBotPushToRank } = require('./utils/prizeDistribution');
-require('./utils/contestStatus')
+require('./utils/contestStatus');
+require('./utils/botAddSysytem')
 
 dotenv.config(); // Load environment variables
 
