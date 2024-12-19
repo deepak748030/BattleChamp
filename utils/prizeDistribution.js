@@ -1,7 +1,7 @@
 const ContestDetails = require('../models/contestDetailsModel');
 const Contest = require('../models/contestModel');
 const cron = require('node-cron'); // For scheduling the function to run periodically
-
+const { processContestData } = require('./botAdd');
 async function distributePrizesForAllContests() {
     try {
         // Fetch all contests from the database
@@ -14,7 +14,8 @@ async function distributePrizesForAllContests() {
         // Process each contest
         for (const contest of allContests) {
             try {
-                await distributePrizes(contest._id); // Call distributePrizes for each contest
+                await distributePrizes(contest._id);
+                // Call distributePrizes for each contest
             } catch (error) {
                 console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
             }
@@ -44,7 +45,7 @@ async function distributePrizes(contestId) {
         // Helper function to find the nearest rank for a given prize amount
         function findNearestRankForPrize(prizeAmount) {
             if (prizeAmount === 0) {
-                return 'No Rank 0';
+                return "No Rank";
             }
             let closestRank = null;
             let closestAmount = 0;
@@ -110,9 +111,9 @@ async function distributePrizes(contestId) {
             const prizeRange = findNearestRankForPrize(prizeAmount);
 
             prizeDistribution.push({
+                contestId,
                 userId: player.userId._id,
                 userName: player.userId.name, // Assuming User model has a "name" field
-                rank,
                 score: player.scoreBest,
                 prizeAmount, // Store the prize amount as a rounded integer
                 rank: prizeRange,  // Store the rank range for prize distribution
@@ -120,8 +121,11 @@ async function distributePrizes(contestId) {
 
             rank++;
         }
+        // console.log(prizeDistribution)
+        for (const prize of prizeDistribution) {
+            await processContestData(prize.contestId, prize);
+        }
 
-        console.log(prizeDistribution); // Log the prize distribution
         return prizeDistribution;
     } catch (error) {
         console.error(`Error distributing prizes for contest ID ${contestId}:`, error.message);
@@ -129,8 +133,10 @@ async function distributePrizes(contestId) {
     }
 }
 
+
+
 // Schedule the function to run every minute using cron
-cron.schedule('* * * * *', async () => {
+cron.schedule('*/7 * * * * *', async () => {
     await distributePrizesForAllContests();
 });
 
