@@ -41,6 +41,15 @@ cron.schedule('*/5 * * * * *', async () => {
                 console.log(`Contest "${contest.name}" status updated to "${newStatus}".`);
 
                 if (newStatus === 'completed') {
+                    // Check if transactions for this contest have already been created
+                    const existingTransactions = await Transaction.find({ contestId: _id });
+
+                    // If transactions already exist, skip the creation of new ones
+                    if (existingTransactions.length > 0) {
+                        console.log(`Transactions for contest ${contest.name} already created. Skipping...`);
+                        continue; // Skip creating transactions for this contest
+                    }
+
                     // Loop through all the joined players in this contest and create transactions for them
                     const contestDetails = await ContestDetails.findOne({ contestId: _id });
 
