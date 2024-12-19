@@ -39,7 +39,7 @@ cron.schedule('*/2 * * * *', async () => {
             console.error('No bots available to add.');
             return;
         }
-        console.log('----------------------------------------------')
+        // console.log('----------------------------------------------')
         // Step 4: Loop through the filtered contests
         for (const { contestDetails, contest } of upcomingContests) {
             const { joinedPlayerData } = contestDetails;

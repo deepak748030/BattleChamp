@@ -1,12 +1,10 @@
 const mongoose = require('mongoose');
-const User = require('../models/userModel'); // User model
 const Contest = require('../models/contestModel'); // Contest model
 const ContestDetails = require('../models/contestDetailsModel'); // ContestDetails model
 
 async function processContestData(contestId, userRankData) {
     try {
-        // console.log(userRankData.rank)
-        // Step 0: Validate the userRankData is an object
+        // Validate userRankData
         if (typeof userRankData !== 'object' || Array.isArray(userRankData)) {
             console.error('userRankData should be an object');
             return;
@@ -20,7 +18,7 @@ async function processContestData(contestId, userRankData) {
             return;
         }
 
-        // Step 2: Fetch contest and contest details
+        // Fetch contest and contest details
         const contest = await Contest.findById(contestId);
         if (!contest) {
             console.error('Contest not found');
@@ -33,33 +31,33 @@ async function processContestData(contestId, userRankData) {
             return;
         }
 
-        if (contest.availableSlots == 0) {
+        // Check available slots
+        if (contest.availableSlots === 0) {
             console.error('No available spots left');
-            // If available slots are 0, add random bots with score within 100 points of user's score
-            await addRandomBotForFullContest(contest, userRankData);
+            // If no slots, update random bot scores
+            await updateRandomBotForFullContest(contest, userRankData);
             return;
         }
-        // Step 3: Sort joined players by scoreBest in descending order
+
+        // Sort joined players by scoreBest in descending order
         const joinedPlayerData = contestDetails.joinedPlayerData.sort((a, b) => b.scoreBest - a.scoreBest);
         joinedPlayerData.forEach((player, index) => {
             player.index = index + 1; // Assign index (1-based)
         });
-        const userIndex = joinedPlayerData.findIndex(p => p.userId.toString() === userId.toString());
-        // console.log('userrank', userIndex + 1)
-        // console.log('.......')
+
+        const userIndex = joinedPlayerData.findIndex((p) => p.userId.toString() === userId.toString());
+
+        // Determine if a bot update is needed based on rank
         if (rank !== 'No Rank') {
             const [rankStart] = rank.split('-').map(Number);
-
             if (rankStart - userIndex > 0) {
-                await addRandomBot(contest, userRankData);
+                await updateRandomBot(contest, userRankData, contestDetails);
             }
-        } else if (rank === 'No Rank') {
+        } else {
             const lastRankRange = contest.winByRank[contest.winByRank.length - 1].rank;
             const [_, lastRankEnd] = lastRankRange.split('-').map(Number);
-
-            // If user's rank is greater than the last rank end, add a random bot
             if (userIndex < lastRankEnd) {
-                await addRandomBot(contest, userRankData);
+                await updateRandomBot(contest, userRankData, contestDetails);
             }
         }
     } catch (error) {
@@ -67,65 +65,54 @@ async function processContestData(contestId, userRankData) {
     }
 }
 
-// Helper Function: Add random bot (to be used periodically)
-async function addRandomBot(contest, userRankData) {
-    const bots = await User.find({ role: 'bot' }).lean(); // Fetch all bot users
-    const contestDetails = await ContestDetails.findOne({ contestId: contest._id });
+// Helper Function: Update random bot score
+async function updateRandomBot(contest, userRankData, contestDetails) {
+    const joinedPlayerData = contestDetails.joinedPlayerData;
 
-    for (const bot of bots) {
-        const isBotAlreadyInContest = contestDetails.joinedPlayerData.some(player => player.userId.toString() === bot._id.toString());
-        if (!isBotAlreadyInContest) {
+    // Loop through the joinedPlayerData and find a bot to update
+    for (let i = 0; i < joinedPlayerData.length; i++) {
+        const player = joinedPlayerData[i];
+        if (player.userId.toString() !== userRankData.userId.toString() && player.userRole === 'bot') {
+            // Bot found, now update score
             const randomAdditionalScore = Math.floor(Math.random() * 100); // Generates a random number between 0 and 99
-            const randomScore = userRankData.score + randomAdditionalScore;
+            const updatedScore = userRankData.score + randomAdditionalScore;
 
-            const botData = {
-                userId: bot._id,
-                scoreBest: randomScore,
-                scoreRecent: randomScore
-            };
+            player.scoreBest = Math.max(player.scoreBest, updatedScore); // Update only if scoreBest improves
+            player.scoreRecent = updatedScore;
 
-            await ContestDetails.updateOne(
-                { contestId: contest._id },
-                { $push: { joinedPlayerData: botData } }
-            );
-            return; // Exit after adding one bot
+            // Save updated contest details
+            await contestDetails.save();
+            console.log(`Updated bot "${player.userId}" scores in contest "${contest.name}"`);
+            return;
         }
     }
 
-    console.error('All bots are already in the contest');
+    // If no bot is found, log this
+    console.error('No existing bot found to update in contest', contest.name);
 }
 
-// Helper Function: Add random bot for full contest (if no available slots)
-async function addRandomBotForFullContest(contest, userRankData) {
-    const bots = await User.find({ role: 'bot' }).lean(); // Fetch all bot users
+// Helper Function: Update random bot score for full contest (if no available slots)
+async function updateRandomBotForFullContest(contest, userRankData) {
     const contestDetails = await ContestDetails.findOne({ contestId: contest._id });
 
-    for (const bot of bots) {
-        const isBotAlreadyInContest = contestDetails.joinedPlayerData.some(player => player.userId.toString() === bot._id.toString());
+    for (const player of contestDetails.joinedPlayerData) {
+        // Check if the player is a bot and within the score range
+        if (player.userRole === 'bot') {
+            const randomAdditionalScore = Math.floor(Math.random() * 100);
+            const updatedScore = userRankData.score + randomAdditionalScore;
 
-        // Only add the bot if it isn't already in the contest and its score is within 100 of the user's score
-        if (!isBotAlreadyInContest) {
-            const randomAdditionalScore = Math.floor(Math.random() * 100); // Generates a random number between 0 and 99
-            const randomScore = userRankData.score + randomAdditionalScore;
+            player.scoreBest = Math.max(player.scoreBest, updatedScore);
+            player.scoreRecent = updatedScore;
 
-            // Only add the bot if its score is within 100 points of the current user's score
-            if (Math.abs(userRankData.score - randomScore) <= 100) {
-                const botData = {
-                    userId: bot._id,
-                    scoreBest: randomScore,
-                    scoreRecent: randomScore
-                };
-
-                await ContestDetails.updateOne(
-                    { contestId: contest._id },
-                    { $push: { joinedPlayerData: botData } }
-                );
-                return; // Exit after adding one bot
-            }
+            // Save updated contest details
+            await contestDetails.save();
+            console.log(`Updated bot "${player.userId}" scores for full contest "${contest.name}"`);
+            return;
         }
     }
 
-    console.error('All bots are already in the contest or no bot matches the score condition');
+    // Log if no bot is found for updating
+    console.error('No bots found matching the criteria for a full contest.');
 }
 
 module.exports = { processContestData };

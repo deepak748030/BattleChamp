@@ -6,11 +6,9 @@ async function distributePrizesForAllContests() {
     try {
         // Fetch all contests from the database
         const allContests = await Contest.find({ contestStatus: 'live' });
-
         if (!allContests || allContests.length === 0) {
             return; // No contests to process
         }
-
         // Process each contest
         for (const contest of allContests) {
             try {
