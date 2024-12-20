@@ -38,6 +38,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Use the user routes
 app.use('/api/user', require('./routes/usersRoutes'));
+app.use('/api', require('./routes/referralRoutes'));
 app.use('/api', require('./routes/allGamesRoutes'));
 app.use('/api', require('./routes/contestDetailsRoutes'));
 app.use('/api', require('./routes/contestRoutes'));
