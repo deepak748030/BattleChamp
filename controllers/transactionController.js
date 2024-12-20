@@ -50,7 +50,7 @@ const placeBet = async (req, res) => {
 
 const addMoney = async (req, res) => {
     try {
-        const { userId, amount, method, payId ,status} = req.body;
+        const { userId, amount, method, payId, status } = req.body;
 
         // Find the user by ID
         const user = await User.findById(userId);
@@ -85,10 +85,10 @@ const withdrawMoney = async (req, res) => {
     try {
         const { userId, amount, method, payId, status } = req.body;
         console.log(status);
-        
+
         const user = await User.findById(userId);
         console.log(user);
-        
+
         if (user?.winningWallet >= amount) {
             const transaction = new Transaction({
                 userId,
@@ -97,7 +97,7 @@ const withdrawMoney = async (req, res) => {
                 method,
                 payId,
                 status
-            }); 
+            });
             await transaction.save();
             user.winningWallet -= amount;
             await user.save()
@@ -110,7 +110,7 @@ const withdrawMoney = async (req, res) => {
 
     } catch (error) {
         console.error('Error withdrawing money:', error);
-        res.status(500).json({ success: false, message: 'Internal server error',error });
+        res.status(500).json({ success: false, message: 'Internal server error', error });
     }
 };
 
@@ -119,7 +119,7 @@ const getTransactionsByType = async (req, res) => {
         const { userId, type } = req.params;
 
         // Find transactions by user ID and type
-        const transactions = await Transaction.find({ userId, type });
+        const transactions = await Transaction.find({ userId, type }).limit(100);
 
         res.status(200).json({ success: true, transactions });
     } catch (error) {
@@ -142,10 +142,30 @@ const getTransactionsByTypeOnly = async (req, res) => {
     }
 };
 
+const getTransactionByAddMoneyAndWithdraw = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Find the user by ID
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Find transactions by user ID and type
+        const transactions = await Transaction.find({ userId, type: { $in: ['MoneyAdd', 'Withdraw'] } }).limit(100);
+        res.status(200).json({ success: true, transactions });
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     placeBet,
     addMoney,
     withdrawMoney,
     getTransactionsByType,
     getTransactionsByTypeOnly,
+    getTransactionByAddMoneyAndWithdraw
 };
