@@ -32,7 +32,7 @@ const createContest = async (req, res) => {
             contestStartDate,
             matchStartTime,
             matchEndTime,
-            availableSlots, 
+            availableSlots,
             totalSlots,
             contestStatus: contestStatus || 'upcoming',
             winByRank,
@@ -57,14 +57,19 @@ const createContest = async (req, res) => {
     }
 };
 
-
-// GET /contest/:gameId - Get contests by Game ID
+// GET /contest/:gameId - Get upcoming and live contests by Game ID
 const getContestsByGameId = async (req, res) => {
     const { gameId } = req.params;
 
     try {
-        // Fetch contests by gameId
-        const contests = await Contest.find({ gameId });
+        // Fetch upcoming and live contests by gameId
+        const contests = await Contest.find({
+            gameId,
+            $or: [
+                { contestStatus: 'upcoming' },
+                { contestStatus: 'live' }
+            ]
+        });
 
         // If no contests found, return 404
         if (!contests || contests.length === 0) {
@@ -77,6 +82,7 @@ const getContestsByGameId = async (req, res) => {
         return res.status(500).json({ msg: 'Error fetching contests', error: error.message });
     }
 };
+
 
 
 
