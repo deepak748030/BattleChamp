@@ -85,5 +85,3 @@ This project is licensed under the **ISC License**.
 - This `README.md` file outlines the basic project structure, how to set it up locally, and the API endpoints available.
 - The **Technologies** section lists the technologies used, and the **Installation** section provides detailed steps to clone and run the application.
 - The **License** section mentions the license for the project (ISC in this case). If you plan to choose a different license, you can modify this section accordingly.
-
-This format should be clear and professional for your GitHub repository and job applications.
