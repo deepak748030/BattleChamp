@@ -119,7 +119,7 @@ const getTransactionsByType = async (req, res) => {
         const { userId, type } = req.params;
 
         // Find transactions by user ID and type
-        const transactions = await Transaction.find({ userId, type }).limit(100);
+        const transactions = await Transaction.find({ userId, type }).sort({ timestamp: -1 }).limit(100);
 
         res.status(200).json({ success: true, transactions });
     } catch (error) {
@@ -161,11 +161,27 @@ const getTransactionByAddMoneyAndWithdraw = async (req, res) => {
     }
 }
 
+
+const getTransactionsByBetAndAddMoney = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Find transactions by user ID and type 'Bet' or 'MoneyAdd'
+        const transactions = await Transaction.find({ userId, type: { $in: ['Bet', 'MoneyAdd'] } }).sort({ timestamp: -1 }).limit(100);
+
+        res.status(200).json({ success: true, transactions });
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     placeBet,
     addMoney,
     withdrawMoney,
     getTransactionsByType,
     getTransactionsByTypeOnly,
-    getTransactionByAddMoneyAndWithdraw
+    getTransactionByAddMoneyAndWithdraw,
+    getTransactionsByBetAndAddMoney
 };
