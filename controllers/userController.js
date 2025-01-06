@@ -1,22 +1,20 @@
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
-// Function to generate a 6-digit random referral code
 const generateReferralCode = async () => {
-    let referCode;
+    let referralCode;
     let isUnique = false;
 
     while (!isUnique) {
-        // Generate a random 6-digit number as the referral code
-        referCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-        // Check if this referral code already exists
-        const existingUser = await User.findOne({ referCode });
+        const userCount = await User.countDocuments();
+        referralCode = `gc${String(userCount + 1).padStart(6, '0')}`;
+        const existingUser = await User.findOne({ referCode: referralCode });
         if (!existingUser) {
-            isUnique = true; // If no user has this referral code, mark as unique
+            isUnique = true;
         }
     }
-    return referCode;
+
+    return referralCode;
 };
 
 const loginOrRegisterUser = async (req, res) => {
