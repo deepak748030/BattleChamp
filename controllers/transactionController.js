@@ -104,7 +104,7 @@ const withdrawMoney = async (req, res) => {
             return res.status(201).json({ success: true, transaction, output: "withdraw successful" });
         }
         else {
-            return res.json({ success: false, transaction: `not enough balance , your winning  is ${user?.winningWallet}, for withdraw` })
+            return res.status(400).json({ success: false, message: `Not enough balance, your winning balance is ${user?.winningWallet} for withdrawal` });
         }
 
 
