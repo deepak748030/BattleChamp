@@ -2,21 +2,38 @@ const ContestDetails = require('../models/contestDetailsModel');
 const Contest = require('../models/contestModel');
 const cron = require('node-cron'); // For scheduling the function to run periodically
 const { processContestData } = require('./botScoreUpdate');
+const NodeCache = require('node-cache');
+const cache = new NodeCache();
+
+
 async function distributePrizesForAllContests() {
     try {
         // Fetch all contests from the database
-        const allContests = await Contest.find({ contestStatus: 'live' });
+        const allContests = await Contest.find();
         if (!allContests || allContests.length === 0) {
             return; // No contests to process
         }
         // Process each contest
+        let distributedData = [];
         for (const contest of allContests) {
             try {
-                await distributePrizes(contest._id);
-                // Call distributePrizes for each contest
+                const result = await distributePrizes(contest._id);
+                if (result.length > 0) {
+                    distributedData.push(result);
+                    distributedData = distributedData.flat();
+                }
+
             } catch (error) {
                 console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
             }
+        }
+        console.log('-----------------------------------------------------------', distributedData)
+        cache.set('distributedData', distributedData);
+        // Watch for changes in distributedData and update the cache
+        const previousData = cache.get('distributedData');
+        if (JSON.stringify(previousData) !== JSON.stringify(distributedData)) {
+            cache.set('distributedData', distributedData);
+            console.log('-----------------------------------------------------------')
         }
     } catch (error) {
         console.error('Error distributing prizes for all contests:', error.message);
@@ -114,7 +131,8 @@ async function distributePrizes(contestId) {
                 userName: player.userId.name, // Assuming User model has a "name" field
                 score: player.scoreBest,
                 prizeAmount, // Store the prize amount as a rounded integer
-                rank: prizeRange,  // Store the rank range for prize distribution
+                rank: prizeRange,
+                userRank: rank // Store the rank range for prize distribution
             });
 
             rank++;
@@ -123,7 +141,7 @@ async function distributePrizes(contestId) {
         for (const prize of prizeDistribution) {
             await processContestData(prize.contestId, prize);
         }
-
+        // console.log(prizeDistribution)
         return prizeDistribution;
     } catch (error) {
         console.error(`Error distributing prizes for contest ID ${contestId}:`, error.message);
@@ -134,7 +152,8 @@ async function distributePrizes(contestId) {
 
 
 // Schedule the function to run every minute using cron
-cron.schedule('*/7 * * * * *', async () => {
+cron.schedule(' */50 * * * * *', async () => {
     await distributePrizesForAllContests();
 });
 
+module.exports = { cache };
