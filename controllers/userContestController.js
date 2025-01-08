@@ -137,6 +137,7 @@ const joinUserContest = async (req, res) => {
         io.emit('contestUpdated', {
             contestId: updatedContest._id,
             availableSlots: updatedContest.availableSlots,
+            status: updatedContest.contestStatus
         });
 
         res.status(201).json({ status: true, message: 'User joined contest successfully' });
