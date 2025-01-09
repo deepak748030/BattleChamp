@@ -1,6 +1,5 @@
 const ContestDetails = require('../models/contestDetailsModel');
 const contestModel = require('../models/contestModel');
-const { get } = require('../routes/getUserGameData');
 const { getIo } = require('../sockets/socketService');
 const { cache } = require('../utils/prizeDistribution');
 

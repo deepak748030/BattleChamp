@@ -119,7 +119,7 @@ const getTransactionsByType = async (req, res) => {
         const { userId, type } = req.params;
 
         // Find transactions by user ID and type
-        const transactions = await Transaction.find({ userId, type }).sort({ timestamp: -1 }).limit(100);
+        const transactions = await Transaction.find({ userId, type }).sort({ createdAt: 1 }).limit(100);
 
         res.status(200).json({ success: true, transactions });
     } catch (error) {
