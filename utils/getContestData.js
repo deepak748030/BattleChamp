@@ -47,7 +47,7 @@ const sendSocketData = async (contestId) => {
 
         const response = { ...contestData.toObject(), ...contestDetails.toObject() };
         const io = getIo();
-        io.emit('updated data', response);
+        io.emit('updatedData', response);
 
     } catch (error) {
         console.error('Error fetching contest data:', error.message);
