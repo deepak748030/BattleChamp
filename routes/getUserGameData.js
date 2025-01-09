@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { cache } = require('../utils/prizeDistribution');
-const contestModel = require('../models/contestModel');
-
+const { getContestData } = require('../utils/getContestData');
 
 router.post('/getUserGameData', async (req, res) => {
     try {
@@ -16,21 +15,7 @@ router.post('/getUserGameData', async (req, res) => {
         if (userData.length === 0) {
             return res.status(404).json({ message: 'User data not found' });
         }
-
-        const contestData = await Promise.all(userData.map(async (user) => {
-            let contest = await contestModel.findById(user.contestId).select('-__v -createdAt -updatedAt');
-            if (!contest) {
-                return null;
-            }
-            const userData = {
-                "score": user.score,
-                "rank": user.userRank,
-                "winning": user.prizeAmount
-            };
-            const contestData = { ...contest.toObject(), game: userData }
-            console.log(contestData)
-            return contestData;
-        }));
+        const contestData = await getContestData(userData);
 
         if (!contestData || contestData.length === 0) {
             return res.status(404).json({ message: 'Contest data not found' });
@@ -53,8 +38,9 @@ router.post('/getUserGameData', async (req, res) => {
     } catch (error) {
         console.error(`Error fetching game data for user ID ${req.params.userId}:`, error.message);
         res.status(500).json({ message: 'Internal server error' });
-
     }
 })
+
+
 
 module.exports = router;

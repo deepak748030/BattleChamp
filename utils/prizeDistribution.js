@@ -27,13 +27,13 @@ async function distributePrizesForAllContests() {
                 console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
             }
         }
-        console.log('-----------------------------------------------------------', distributedData)
+        console.log('cache saved now search')
         cache.set('distributedData', distributedData);
         // Watch for changes in distributedData and update the cache
         const previousData = cache.get('distributedData');
         if (JSON.stringify(previousData) !== JSON.stringify(distributedData)) {
             cache.set('distributedData', distributedData);
-            console.log('-----------------------------------------------------------')
+            // console.log('-----------------------------------------------------------')
         }
     } catch (error) {
         console.error('Error distributing prizes for all contests:', error.message);

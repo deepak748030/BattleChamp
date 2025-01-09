@@ -1,11 +1,14 @@
 const ContestDetails = require('../models/contestDetailsModel');
-const Contest = require('../models/contestModel')
+const Contest = require('../models/contestModel');
+const { sendSocketData } = require('../utils/getContestData');
 const updateResult = require("../utils/scoreUpdate")
 
 const updateContestDetails = async (req, res) => {
     const { contestId, userId, score } = req.body;
 
     try {
+        console.log('run socket');
+        await sendSocketData(contestId);
         let details = await updateResult(contestId, userId, score);
         if (!details) {
             return res.status(404).json({ msg: "something is wrong in function , updateResult - ./utlis/scoreUpdate" });
