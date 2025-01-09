@@ -1,31 +1,41 @@
 const ContestDetails = require('../models/contestDetailsModel');
 const Winners = require('../models/winnersModel');
 const moment = require('moment');
-
+const contestModel = require('../models/contestModel');
 // GET /leaderboard/:contestId - Get leaderboard for a specific contest, sorted by bestScore
 const getLeaderboardByContestId = async (req, res) => {
     const { contestId } = req.params;
 
-    try { 
+    try {
         // Fetch contest details with matching contestId
-        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId',"name email mobile lifetimeWinning").exec();
+        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId', "name email mobile lifetimeWinning").exec();
 
-
-    //     ContestDetails.findOne({ contestId })
-    // .populate('data.userId', 'username email') // Populate userId field with 'username' and 'email'
-    // .exec();
-        if (!contestDetails || contestDetails.joinedPlayerData.length === 0) {
+        if (!contestDetails) {
             return res.status(404).json({ msg: 'No data found for this contest' });
         }
-  
+
+        const contest = await contestModel.findById(contestId);
+
+        if (!contest || contestDetails.joinedPlayerData.length === 0) {
+            return res.status(404).json({ msg: 'No data found for this contest' });
+        }
+
         // Sort the players by bestScore in descending order
         const sortedPlayers = contestDetails.joinedPlayerData.sort((a, b) => b.bestScore - a.bestScore);
+        // Remove createdAt and updatedAt fields from contest object
+        const { createdAt, updatedAt, ...contestWithoutTimestamps } = contest.toObject();
 
-        return res.status(200).json({ msg: 'Leaderboard fetched successfully', data: sortedPlayers });
+        return res.status(200).json({
+            msg: 'Leaderboard fetched successfully', data: {
+                contest: contestWithoutTimestamps,
+                players: sortedPlayers
+            }
+        });
     } catch (error) {
         return res.status(500).json({ msg: 'Error fetching leaderboard', error: error.message });
     }
 };
+
 
 // GET /leaderboard/weekly - Get leaderboard for winners in the current week
 const getWeeklyLeaderboard = async (req, res) => {
