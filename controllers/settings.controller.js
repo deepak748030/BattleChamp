@@ -16,6 +16,7 @@ const getSettings = async (_, res) => {
     }
 };
 
+
 const updateSettings = async (req, res) => {
     try {
         const updateData = { ...req.body };
