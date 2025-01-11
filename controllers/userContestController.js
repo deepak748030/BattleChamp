@@ -154,7 +154,8 @@ const getContestsByUserId = async (req, res) => {
     try {
         // Populate both userId (referencing User model) and contestId (referencing Slots model)
         const userContests = await UserContest.find({ userId })   // Populates the user details from User model
-            .populate('contestId'); // Populates the contest details from Slots model
+            .populate('contestId')
+            .sort({ createdAt: -1 }); // Populates the contest details from Slots model
 
         if (!userContests || userContests.length === 0) {
             return res.status(404).json({ msg: 'No contests found for this user' });
