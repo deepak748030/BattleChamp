@@ -9,32 +9,37 @@ const cache = new NodeCache();
 async function distributePrizesForAllContests() {
     try {
         // Fetch all contests from the database
-        await Contest.find({ status: 'live' });
-        const allContests = await Contest.find();
-        if (!allContests || allContests.length === 0) {
-            return; // No contests to process
-        }
-        // Process each contest
-        let distributedData = [];
-        for (const contest of allContests) {
-            try {
-                const result = await distributePrizesCache(contest._id);
-                if (result.length > 0) {
-                    distributedData.push(result);
-                    distributedData = distributedData.flat();
-                }
-
-            } catch (error) {
-                console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
+        const liveContest = await Contest.find({ status: 'live' });
+        if (liveContest) {
+            for (const contest of liveContest) {
+                await distributePrizes(contest._id);
             }
-        }
-        console.log('cache saved now search')
-        cache.set('distributedData', distributedData);
-        // Watch for changes in distributedData and update the cache
-        const previousData = cache.get('distributedData');
-        if (JSON.stringify(previousData) !== JSON.stringify(distributedData)) {
+            const allContests = await Contest.find();
+            if (!allContests || allContests.length === 0) {
+                return; // No contests to process
+            }
+            // Process each contest
+            let distributedData = [];
+            for (const contest of allContests) {
+                try {
+                    const result = await distributePrizesCache(contest._id);
+                    if (result.length > 0) {
+                        distributedData.push(result);
+                        distributedData = distributedData.flat();
+                    }
+
+                } catch (error) {
+                    console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
+                }
+            }
+            console.log('cache saved now search')
             cache.set('distributedData', distributedData);
-            // console.log('-----------------------------------------------------------')
+            // Watch for changes in distributedData and update the cache
+            const previousData = cache.get('distributedData');
+            if (JSON.stringify(previousData) !== JSON.stringify(distributedData)) {
+                cache.set('distributedData', distributedData);
+                // console.log('-----------------------------------------------------------')
+            }
         }
     } catch (error) {
         console.error('Error distributing prizes for all contests:', error.message);
@@ -44,6 +49,7 @@ async function distributePrizesForAllContests() {
 async function distributePrizesCache(contestId) {
     try {
         // Fetch contest data from the database
+        console.log('first')
         const contestData = await Contest.findById(contestId);
         if (!contestData) {
             throw new Error(`Contest with ID ${contestId} not found`);
