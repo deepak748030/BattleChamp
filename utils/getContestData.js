@@ -6,7 +6,7 @@ const { cache } = require('../utils/prizeDistribution');
 async function getContestData(userData) {
     try {
         const contestData = await Promise.all(userData.map(async (user) => {
-            let contest = await contestModel.findById(user.contestId).select('-__v -createdAt -updatedAt');
+            let contest = await contestModel.findById(user.contestId).select('-__v -updatedAt').sort({ createdAt: -1 });
             if (!contest) {
                 return null;
             }
@@ -19,6 +19,8 @@ async function getContestData(userData) {
             console.log(contestData);
             return contestData;
         }));
+        // Sort by createdAt in descending order
+        contestData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         return contestData;
     } catch (error) {
         console.error('Error fetching contest data:', error.message);
