@@ -50,6 +50,7 @@ app.use('/api', require('./routes/adminRoute'));
 app.use("/api/settings", require('./routes/settings.routes'));
 app.use("/api/transaction", require('./routes/transactionRoute'));
 app.use("/api", require('./routes/getUserGameData'));
+app.use("/api", require('./routes/fcmRoutes'));
 // Initialize Socket.io with the HTTP server
 initializeSocket(server);
 
