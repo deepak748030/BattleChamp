@@ -12,12 +12,12 @@ router.post('/add-money', addMoney);
 // Route to get transactions by bet and add money for a specific user
 router.get('/bet-and-add-money/:userId', getTransactionsByBetAndAddMoney);
 
+// Route to get transactions by type for a specific user
+router.get('/:userId/:type', getTransactionsByType);
 
 // Route to withdraw money
 router.post('/withdraw-money', withdrawMoney);
 
-// Route to get transactions by type for a specific user
-router.get('/:userId/:type', getTransactionsByType);
 
 
 // Route to get all transactions of add money and withdraw type

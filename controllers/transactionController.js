@@ -117,9 +117,12 @@ const withdrawMoney = async (req, res) => {
 const getTransactionsByType = async (req, res) => {
     try {
         const { userId, type } = req.params;
-
+        console.log(userId, type)
         // Find transactions by user ID and type
-        const transactions = await Transaction.find({ userId, type }).sort({ createdAt: 1 }).limit(100);
+        const transactions = await Transaction.find({ userId, type }).sort({ createdAt: -1 }).limit(100);
+        if (transactions.length === 0) {
+            return res.status(404).json({ success: false, message: 'No transaction found' });
+        }
 
         res.status(200).json({ success: true, transactions });
     } catch (error) {
@@ -167,7 +170,7 @@ const getTransactionsByBetAndAddMoney = async (req, res) => {
         const { userId } = req.params;
 
         // Find transactions by user ID and type 'Bet' or 'MoneyAdd'
-        const transactions = await Transaction.find({ userId, type: { $in: ['Bet', 'MoneyAdd'] } }).sort({ timestamp: -1 }).limit(100);
+        const transactions = await Transaction.find({ userId, type: { $in: ['Bet', 'MoneyAdd'] } }).sort({ createdAt: -1 }).limit(100);
 
         res.status(200).json({ success: true, transactions });
     } catch (error) {
