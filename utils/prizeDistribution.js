@@ -49,7 +49,7 @@ async function distributePrizesForAllContests() {
 async function distributePrizesCache(contestId) {
     try {
         // Fetch contest data from the database
-        console.log('first')
+        // console.log('first')
         const contestData = await Contest.findById(contestId);
         if (!contestData) {
             throw new Error(`Contest with ID ${contestId} not found`);

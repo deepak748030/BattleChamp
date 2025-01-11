@@ -5,6 +5,7 @@ const cron = require('node-cron');
 const ContestDetails = require('../models/contestDetailsModel');
 const Contest = require('../models/contestModel');
 const User = require('../models/userModel'); // For fetching bot users
+const { getIo } = require('../sockets/socketService');
 
 // Helper function to randomly select bots
 function getRandomBots(bots, count, excludedBotIds) {
@@ -25,7 +26,7 @@ cron.schedule('*/2 * * * *', async () => {
         const upcomingContests = [];
         for (const contestDetails of contestDetailsList) {
             const contest = await Contest.findById(contestDetails.contestId).select(
-                'contestStatus winByRank name'
+                'contestStatus winByRank name totalSlots'
             );
 
             if (contest?.contestStatus === 'upcoming') {
@@ -39,7 +40,7 @@ cron.schedule('*/2 * * * *', async () => {
             console.error('No bots available to add.');
             return;
         }
-        // console.log('----------------------------------------------')
+
         // Step 4: Loop through the filtered contests
         for (const { contestDetails, contest } of upcomingContests) {
             const { joinedPlayerData } = contestDetails;
@@ -60,15 +61,10 @@ cron.schedule('*/2 * * * *', async () => {
                 .map((player) => player.userId._id.toString());
 
             // Step 6: Check if bots are less than the required `lastRank`
-
             const botsToAddCount = lastRank - joinedBotIds.length;
             if (botsToAddCount > 0) {
                 // Calculate the maximum number of bots to add in this iteration
                 const botsToAddNow = Math.min(botsToAddCount, 5);
-
-                // console.log(
-                //     `Adding up to ${botsToAddNow} bot(s) to contest: ${contest.name} (Current bots: ${joinedBotIds.length}, Required: ${lastRank})`
-                // );
 
                 // Randomly select bots excluding already joined bots
                 const selectedBots = getRandomBots(allBots, botsToAddNow, joinedBotIds);
@@ -80,18 +76,32 @@ cron.schedule('*/2 * * * *', async () => {
                         scoreBest: 0,
                         scoreRecent: 0,
                     });
-
-                    // console.log(`Bot "${bot.name}" added to contest: ${contest.name}`);
                 }
 
                 // Save the updated ContestDetails
                 await contestDetails.save();
-                // console.log(`Successfully added ${selectedBots.length} bot(s) to contest: ${contest.name}`);
+
+                // Step 7: Update the Contest with the number of joined players and available slots
+                const joinedPlayerCount = contestDetails.joinedPlayerData.length;
+                const availableSlots = contest.totalSlots - joinedPlayerCount;
+
+                await Contest.findByIdAndUpdate(contest._id, {
+                    joinedPlayerCount,
+                    availableSlots,
+                });
+                console.log('io')
+                const io = getIo();
+                io.emit('contestUpdated', {
+                    contestId: contest._id,
+                    availableSlots: availableSlots,
+                    contestStatus: contest.contestStatus
+                });
+
+
+                console.log(`Successfully added ${selectedBots.length} bot(s) to contest: ${contest.name}`);
             }
         }
     } catch (error) {
         console.error('Error processing upcoming contests:', error.message);
     }
 });
-
-
