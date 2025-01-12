@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Contest = require('../models/contestModel'); // Contest model
 const ContestDetails = require('../models/contestDetailsModel'); // ContestDetails model
 
-// bot
+// bot No available spots left
 
 async function processContestData(contestId, userRankData) {
     try {
@@ -14,10 +14,10 @@ async function processContestData(contestId, userRankData) {
 
         const { userId, rank, score } = userRankData;
 
-        console.log(userId, rank, score)
+        // console.log(userId, rank, score)
         // Check if required fields are missing
         if (!contestId || !userId || !rank || !score) {
-            console.error('contestId, userId, rank, and score are required');
+            // console.error('contestId, userId, rank, and score are required');
             return;
         }
 
@@ -38,7 +38,7 @@ async function processContestData(contestId, userRankData) {
 
         // Check available slots
         if (contest.availableSlots > 0) {
-            console.error('No available spots left');
+            // console.error('No available spots left');
             // If no slots, update random bot scores
             await updateRandomBotForFullContest(contest, userRankData);
             return;
