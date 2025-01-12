@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Contest = require('../models/contestModel'); // Contest model
 const ContestDetails = require('../models/contestDetailsModel'); // ContestDetails model
 
-// bot No available spots left
+// No bots found matching the criteria for a full contest 
 
 async function processContestData(contestId, userRankData) {
     try {
@@ -120,7 +120,7 @@ async function updateRandomBotForFullContest(contest, userRankData) {
 
         // Save updated contest details
         await contestDetails.save();
-        // console.log(`Updated bot "${lowestScoreBot.userId}" scores for full contest "${contest.name}"`);
+        // console.log(`Updated bot "${lowestScoreBot.userId.name}" scores for full contest "${contest.name}"`);
     } else {
         console.error('No bots found matching the criteria for a full contest.');
     }

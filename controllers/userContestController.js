@@ -17,7 +17,7 @@ const joinUserContest = async (req, res) => {
         }
 
         // Fetch the contest details to check the type (token or money)
-        const contest = await Contest.findById(contestId);
+        const contest = await Contest.findById(contestId).populate('gameId');
         if (!contest) {
             return res.status(400).json({ status: false, message: 'Contest not found' });
         }
@@ -43,8 +43,8 @@ const joinUserContest = async (req, res) => {
                 userId,
                 type: 'Bet',
                 status: 'Success',
-                amount: contest.entryFee,
-                gameName: contest.name,
+                amount: contest.amount,
+                gameName: contest.gameId.gameName,
                 contestId: contest._id,
                 result: 1,
             };
@@ -97,7 +97,7 @@ const joinUserContest = async (req, res) => {
                 type: 'Bet',
                 status: 'Success',
                 amount: contest.amount,
-                gameName: contest.name,
+                gameName: contest.gameId.gameName,
                 contestId: contest._id,
                 result: 1,
             };

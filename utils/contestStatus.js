@@ -40,23 +40,24 @@ cron.schedule('*/5 * * * * *', async () => {
                 // console.log(newStatus, contestStatus, contest.contestStatus)
             }
             // Step 6: If the status has changed, update it and create transactions if contest is completed
-            // console.log('---------- newStatus', newStatus, contest.contestStatus)
+            const io = getIo();
+            io.emit('contestUpdated', {
+                contestId: contest._id,
+                availableSlots: contest.availableSlots,
+                contestStatus: newStatus
+            });
             if (newStatus !== contest.contestStatus) {
                 // console.log('status completed')
                 await Contest.findByIdAndUpdate(contest._id, { contestStatus: newStatus });
                 // Emit the updated contest data using Socket.io
-                const io = getIo();
-                io.emit('contestUpdated', {
-                    contestId: contest._id,
-                    availableSlots: contest.availableSlots,
-                    contestStatus: newStatus
-                });
+
                 console.log(`Contest "${contest.name}" status updated to "${newStatus}".`);
+                // console.log('-------------status changed')
                 if (newStatus == 'completed') {
 
-                    console.log('------------------------------rs distributing start')
+                    // console.log('------------------------------rs distributing start')
                     // Step 7: Check if transactions for this contest have already been created
-                    const existingTransactions = await Transaction.find({ contestId: _id });
+                    const existingTransactions = await Transaction.find({ contestId: _id, result: 0 });
 
                     // If transactions already exist, skip the creation of new ones
                     if (existingTransactions.length > 0) {

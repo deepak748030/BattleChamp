@@ -4,7 +4,7 @@ const cron = require('node-cron'); // For scheduling the function to run periodi
 const { processContestData } = require('./botScoreUpdate');
 const NodeCache = require('node-cache');
 const cache = new NodeCache();
-
+// Error distributing prizes for contest ID
 
 async function distributePrizesForAllContests() {
     try {
@@ -30,7 +30,7 @@ async function distributePrizesForAllContests() {
                     }
 
                 } catch (error) {
-                    console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
+                    // console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
                 }
             }
             // console.log('cache saved now search')
