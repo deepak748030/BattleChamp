@@ -5,13 +5,14 @@ const Transaction = require('../models/transaction'); // Transaction model
 const cron = require('node-cron');
 const moment = require('moment-timezone'); // Import moment-timezone for IST handling
 const { getIo } = require('../sockets/socketService');
+const sendNotification = require('./notification');
 
 cron.schedule('*/5 * * * * *', async () => {
     try {
         // console.log('Cron job running...');
 
         // Step 1: Fetch all contests
-        const contests = await Contest.find({});
+        const contests = await Contest.find({}).populate('gameId');
         // console 
         // Step 2: Get the current time in IST
         const currentDateTime = moment.tz('Asia/Kolkata'); // Use Indian Standard Time (IST)
@@ -55,7 +56,6 @@ cron.schedule('*/5 * * * * *', async () => {
                 // console.log('-------------status changed')
                 if (newStatus == 'completed') {
 
-                    // console.log('------------------------------rs distributing start')
                     // Step 7: Check if transactions for this contest have already been created
                     const existingTransactions = await Transaction.find({ contestId: _id, result: 0 });
 
@@ -123,9 +123,22 @@ cron.schedule('*/5 * * * * *', async () => {
                                 if (user.role === 'user') {
                                     await User.findByIdAndUpdate(userId, { $inc: { winningWallet: winningAmount } });
                                     console.log(`User "${user.name}"'s wallet updated with amount: ${winningAmount}`);
+                                    let userStatus = 'win';
+                                    let userName = user.name;
+                                    let gameName = contest.name;
+                                    sendNotification(userId, userStatus, userName, gameName)
                                 }
 
                                 console.log(`Transaction created for user "${user.name}" in contest "${contest.name}", amount: ${winningAmount}`);
+                            } else {
+                                try {
+                                    let userStatus = 'lose';
+                                    let userName = user.name;
+                                    let gameName = contest.name;
+                                    sendNotification(userId, userStatus, userName, gameName);
+                                } catch (error) {
+                                    console.error(`Error sending notification for user "${user.name}" in contest "${contest.name}":`, error.message);
+                                }
                             }
                         }
                     }
