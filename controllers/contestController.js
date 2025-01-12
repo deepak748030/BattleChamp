@@ -32,7 +32,7 @@ const createContest = async (req, res) => {
             contestStartDate,
             matchStartTime,
             matchEndTime,
-            availableSlots,
+            availableSlots: availableSlots || totalSlots, // Include availableSlots
             totalSlots,
             contestStatus: contestStatus || 'upcoming',
             winByRank,
@@ -75,7 +75,6 @@ const getContestsByGameId = async (req, res) => {
         if (!contests || contests.length === 0) {
             return res.status(404).json({ msg: 'No contests found for this game' });
         }
-
         // Return the retrieved contests
         return res.status(200).json({ msg: 'Contests retrieved successfully', data: contests });
     } catch (error) {
@@ -159,6 +158,7 @@ const getContestById = async (req, res) => {
         if (!contest) {
             return res.status(404).json({ message: 'Contest not found' });
         }
+        console.log(contest);
 
         res.status(200).json({ contest });
     } catch (error) {

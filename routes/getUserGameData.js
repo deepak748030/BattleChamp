@@ -7,11 +7,13 @@ router.post('/getUserGameData', async (req, res) => {
     try {
         const { userId } = req.body;
         const data = await cache.get('distributedData');
-        console.log(data)
+
         if (!data) {
             return res.status(404).json({ message: 'Data not found' });
         }
-        const userData = data.filter(user => user.userId == userId);
+        const userData = data.filter(user => user.userId.toString() === userId.toString());
+        // console.log(userData)
+
         if (userData.length === 0) {
             return res.status(404).json({ message: 'User data not found' });
         }

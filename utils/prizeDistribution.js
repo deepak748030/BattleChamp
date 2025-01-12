@@ -9,10 +9,11 @@ const cache = new NodeCache();
 async function distributePrizesForAllContests() {
     try {
         // Fetch all contests from the database
-        const liveContest = await Contest.find({ status: 'live' });
+        const liveContest = await Contest.find({ contestStatus: 'live' });
         if (liveContest) {
             for (const contest of liveContest) {
                 await distributePrizes(contest._id);
+
             }
             const allContests = await Contest.find();
             if (!allContests || allContests.length === 0) {
@@ -32,13 +33,13 @@ async function distributePrizesForAllContests() {
                     console.error(`Error distributing prizes for contest ID ${contest._id}:`, error.message);
                 }
             }
-            console.log('cache saved now search')
+            // console.log('cache saved now search')
             cache.set('distributedData', distributedData);
             // Watch for changes in distributedData and update the cache
             const previousData = cache.get('distributedData');
             if (JSON.stringify(previousData) !== JSON.stringify(distributedData)) {
                 cache.set('distributedData', distributedData);
-                // console.log('-----------------------------------------------------------')
+                // console.log('---------------------------------------')
             }
         }
     } catch (error) {
@@ -48,8 +49,6 @@ async function distributePrizesForAllContests() {
 
 async function distributePrizesCache(contestId) {
     try {
-        // Fetch contest data from the database
-        // console.log('first')
         const contestData = await Contest.findById(contestId);
         if (!contestData) {
             throw new Error(`Contest with ID ${contestId} not found`);
@@ -102,8 +101,8 @@ async function distributePrizesCache(contestId) {
         if (!contestDetails || !contestDetails.joinedPlayerData.length) {
             return; // No joined players, skip processing
         }
-
-        const joinedPlayers = contestDetails.joinedPlayerData.filter(player => player.userId.role == 'user');
+        // console.log('---------------')
+        const joinedPlayers = contestDetails.joinedPlayerData
         // console.log("joined player", joinedPlayers.length);
         const { winByRank, totalSlots, amount } = contestData;
 
@@ -114,7 +113,6 @@ async function distributePrizesCache(contestId) {
 
         // Sort players by best score (descending order)
         joinedPlayers.sort((a, b) => b.scoreBest - a.scoreBest);
-
         // Adjust prize amounts proportionally based on total slots
         const adjustmentFactor = totalSlots > joinedPlayers.length ? joinedPlayers.length / totalSlots : 1;
 
@@ -137,11 +135,9 @@ async function distributePrizesCache(contestId) {
                 userId: player.userId._id,
                 userName: player.userId.name, // Assuming User model has a "name" field
                 score: player.scoreBest,
-                prizeAmount, // Store the prize amount as a rounded integer
                 rank: prizeRange,
-                userRank: rank // Store the rank range for prize distribution
+                userRank: rank
             });
-
             rank++;
         }
 
@@ -201,15 +197,17 @@ async function distributePrizes(contestId) {
 
             return closestRank || "No Rank";
         }
-
+        // console.log('--------------')
         // Fetch contest details for joined players
         const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId');
+        // console.log(contestDetails.joinedPlayerData)
+
         if (!contestDetails || !contestDetails.joinedPlayerData.length) {
             return; // No joined players, skip processing
         }
 
         const joinedPlayers = contestDetails.joinedPlayerData.filter(player => player.userId.role == 'user');
-        // console.log("joined player", joinedPlayers.length);
+        // console.log(joinedPlayers, "----------")
         const { winByRank, totalSlots, amount } = contestData;
 
         // Calculate the total prize pool and admin share
@@ -228,6 +226,7 @@ async function distributePrizes(contestId) {
         let rank = 1;
 
         for (const player of joinedPlayers) {
+
             // Find rank range and prize amount
             const rankPrize = winByRank.find(rankRange => isRankInRange(rank, rankRange.rank));
 
@@ -249,8 +248,11 @@ async function distributePrizes(contestId) {
 
             rank++;
         }
+
         // console.log(prizeDistribution)
         for (const prize of prizeDistribution) {
+            // console.log('run')
+            // console.log(prize.contestId, prize)
             await processContestData(prize.contestId, prize);
         }
         // console.log(prizeDistribution)
@@ -264,7 +266,8 @@ async function distributePrizes(contestId) {
 
 
 // Schedule the function to run every minute using cron
-cron.schedule(' */50 * * * * *', async () => {
+cron.schedule(' */5 * * * * *', async () => {
+    // console.log('first--------------')
     await distributePrizesForAllContests();
 });
 

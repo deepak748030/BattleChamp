@@ -115,6 +115,7 @@ const getUserById = async (req, res) => {
                 bonusWallet: user.bonusWallet,
                 lifetimeWinning: user.lifetimeWinning,
                 type: user.type,
+                token: user.token,
             },
         });
     } catch (error) {

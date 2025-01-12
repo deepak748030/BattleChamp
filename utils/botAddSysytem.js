@@ -89,7 +89,7 @@ cron.schedule('*/2 * * * *', async () => {
                     joinedPlayerCount,
                     availableSlots,
                 });
-                console.log('io')
+
                 const io = getIo();
                 io.emit('contestUpdated', {
                     contestId: contest._id,

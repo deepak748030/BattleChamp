@@ -8,7 +8,7 @@ const { getIo } = require('../sockets/socketService');
 
 cron.schedule('*/5 * * * * *', async () => {
     try {
-        console.log('Cron job running...');
+        // console.log('Cron job running...');
 
         // Step 1: Fetch all contests
         const contests = await Contest.find({});
@@ -37,10 +37,12 @@ cron.schedule('*/5 * * * * *', async () => {
             } else if (currentDateTime.isAfter(contestEnd)) {
                 // Contest has ended (completed)
                 newStatus = 'completed';
+                // console.log(newStatus, contestStatus, contest.contestStatus)
             }
             // Step 6: If the status has changed, update it and create transactions if contest is completed
-            if (newStatus !== contestStatus) {
-
+            // console.log('---------- newStatus', newStatus, contest.contestStatus)
+            if (newStatus !== contest.contestStatus) {
+                // console.log('status completed')
                 await Contest.findByIdAndUpdate(contest._id, { contestStatus: newStatus });
                 // Emit the updated contest data using Socket.io
                 const io = getIo();
@@ -50,14 +52,15 @@ cron.schedule('*/5 * * * * *', async () => {
                     contestStatus: newStatus
                 });
                 console.log(`Contest "${contest.name}" status updated to "${newStatus}".`);
+                if (newStatus == 'completed') {
 
-                if (newStatus === 'completed') {
+                    console.log('------------------------------rs distributing start')
                     // Step 7: Check if transactions for this contest have already been created
                     const existingTransactions = await Transaction.find({ contestId: _id });
 
                     // If transactions already exist, skip the creation of new ones
                     if (existingTransactions.length > 0) {
-                        console.log(`Transactions for contest ${contest.name} already created. Skipping...`);
+                        console.log(`Transactions for contest "${contest.name}" already created. Skipping...`);
                         continue; // Skip creating transactions for this contest
                     }
 
@@ -115,7 +118,13 @@ cron.schedule('*/5 * * * * *', async () => {
                                 const transaction = new Transaction(transactionData);
                                 await transaction.save(); // Save the transaction
 
-                                console.log(`Transaction created for user ${user.name} in contest ${contest.name}, amount: ${winningAmount}`);
+                                // Update the user's wallet with the winning amount if the user role is 'user'
+                                if (user.role === 'user') {
+                                    await User.findByIdAndUpdate(userId, { $inc: { winningWallet: winningAmount } });
+                                    console.log(`User "${user.name}"'s wallet updated with amount: ${winningAmount}`);
+                                }
+
+                                console.log(`Transaction created for user "${user.name}" in contest "${contest.name}", amount: ${winningAmount}`);
                             }
                         }
                     }

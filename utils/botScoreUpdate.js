@@ -2,9 +2,11 @@ const mongoose = require('mongoose');
 const Contest = require('../models/contestModel'); // Contest model
 const ContestDetails = require('../models/contestDetailsModel'); // ContestDetails model
 
+// bot
+
 async function processContestData(contestId, userRankData) {
     try {
-        // Validate userRankData
+        // Validate userRankData   
         if (typeof userRankData !== 'object' || Array.isArray(userRankData)) {
             console.error('userRankData should be an object');
             return;
@@ -12,6 +14,7 @@ async function processContestData(contestId, userRankData) {
 
         const { userId, rank, score } = userRankData;
 
+        console.log(userId, rank, score)
         // Check if required fields are missing
         if (!contestId || !userId || !rank || !score) {
             console.error('contestId, userId, rank, and score are required');
@@ -20,19 +23,21 @@ async function processContestData(contestId, userRankData) {
 
         // Fetch contest and contest details
         const contest = await Contest.findById(contestId);
+
         if (!contest) {
             console.error('Contest not found');
             return;
         }
 
         const contestDetails = await ContestDetails.findOne({ contestId });
+
         if (!contestDetails) {
             console.error('Contest details not found');
             return;
         }
 
         // Check available slots
-        if (contest.availableSlots === 0) {
+        if (contest.availableSlots > 0) {
             console.error('No available spots left');
             // If no slots, update random bot scores
             await updateRandomBotForFullContest(contest, userRankData);
@@ -92,27 +97,33 @@ async function updateRandomBot(contest, userRankData, contestDetails) {
 }
 
 // Helper Function: Update random bot score for full contest (if no available slots)
+
 async function updateRandomBotForFullContest(contest, userRankData) {
-    const contestDetails = await ContestDetails.findOne({ contestId: contest._id });
+    const contestDetails = await ContestDetails.findOne({ contestId: contest._id }).populate('joinedPlayerData.userId');
+    let lowestScoreBot = null;
 
+    // Find the bot with the lowest score
     for (const player of contestDetails.joinedPlayerData) {
-        // Check if the player is a bot and within the score range
-        if (player.userRole === 'bot') {
-            const randomAdditionalScore = Math.floor(Math.random() * 100);
-            const updatedScore = userRankData.score + randomAdditionalScore;
-
-            player.scoreBest = Math.max(player.scoreBest, updatedScore);
-            player.scoreRecent = updatedScore;
-
-            // Save updated contest details
-            await contestDetails.save();
-            console.log(`Updated bot "${player.userId}" scores for full contest "${contest.name}"`);
-            return;
+        if (player.userId.role === 'bot') {
+            if (!lowestScoreBot || player.scoreBest < lowestScoreBot.scoreBest) {
+                lowestScoreBot = player;
+            }
         }
     }
 
-    // Log if no bot is found for updating
-    console.error('No bots found matching the criteria for a full contest.');
+    if (lowestScoreBot) {
+        const randomAdditionalScore = Math.floor(Math.random() * 100);
+        const updatedScore = userRankData.score + randomAdditionalScore;
+
+        lowestScoreBot.scoreBest = Math.max(lowestScoreBot.scoreBest, updatedScore);
+        lowestScoreBot.scoreRecent = updatedScore;
+
+        // Save updated contest details
+        await contestDetails.save();
+        // console.log(`Updated bot "${lowestScoreBot.userId}" scores for full contest "${contest.name}"`);
+    } else {
+        console.error('No bots found matching the criteria for a full contest.');
+    }
 }
 
 module.exports = { processContestData };

@@ -29,13 +29,13 @@ const joinUserContest = async (req, res) => {
         }
 
         // Logic for token contests
-        if (contest.contestType === 'token') {
-            if (user.tokens < contest.entryFee) {
+        if (contest.betType === 'token') {
+            if (user.token < contest.amount) {
                 return res.status(400).json({ status: false, message: 'Insufficient tokens' });
             }
 
             // Deduct tokens
-            user.tokens -= contest.entryFee;
+            user.token -= contest.amount;
             await user.save();
 
             // Create a transaction for token contest
@@ -51,19 +51,14 @@ const joinUserContest = async (req, res) => {
             const transaction = new Transaction(transactionData);
             await transaction.save(); // Save the transaction
 
-        } else if (contest.contestType === 'money') {
-            let remainingAmount = contest.entryFee;
-
-            // First, deduct from bonus wallet (10%)
-            let deductedAmount = 0;
-            if (user.bonusWallet >= remainingAmount * 0.1) {
-                deductedAmount = remainingAmount * 0.1;
-                user.bonusWallet -= deductedAmount;
-                remainingAmount -= deductedAmount;
-            } else {
-                deductedAmount = user.bonusWallet;
-                remainingAmount -= deductedAmount;
-                user.bonusWallet = 0;
+        } else if (contest.betType === 'money') {
+            console.log('money')
+            let remainingAmount = contest.amount;
+            const bonusDeduction = Math.min(user.bonusWallet, contest.amount * 0.1); // 10% of contest amount or available bonus wallet
+            // Deduct from bonus wallet first
+            if (bonusDeduction > 0) {
+                user.bonusWallet -= bonusDeduction;
+                remainingAmount -= bonusDeduction;
             }
 
             // Deduct from deposit wallet if necessary
@@ -101,13 +96,17 @@ const joinUserContest = async (req, res) => {
                 userId,
                 type: 'Bet',
                 status: 'Success',
-                amount: contest.entryFee,
+                amount: contest.amount,
                 gameName: contest.name,
                 contestId: contest._id,
                 result: 1,
             };
             const transaction = new Transaction(transactionData);
-            await transaction.save(); // Save the transaction
+            const savedTransaction = await transaction.save(); // Save the transaction
+
+            if (!savedTransaction) {
+                return res.status(400).json({ status: false, message: 'Transaction not created' });
+            }
         }
 
         // Create a new UserContest entry
@@ -139,7 +138,7 @@ const joinUserContest = async (req, res) => {
             availableSlots: updatedContest.availableSlots,
             contestStatus: updatedContest.contestStatus
         });
-
+        // console.log(user)
         res.status(201).json({ status: true, message: 'User joined contest successfully' });
     } catch (error) {
         return res.status(500).json({ status: false, message: 'Error joining contest', error: error.message });
@@ -160,7 +159,7 @@ const getContestsByUserId = async (req, res) => {
         if (!userContests || userContests.length === 0) {
             return res.status(404).json({ msg: 'No contests found for this user' });
         }
-
+        console.log(userContests.length)
         return res.status(200).json({ msg: 'User contests retrieved successfully', data: userContests });
     } catch (error) {
         return res.status(500).json({ msg: 'Error fetching contests', error: error.message });

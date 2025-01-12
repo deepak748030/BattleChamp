@@ -7,9 +7,9 @@ const updateContestDetails = async (req, res) => {
     const { contestId, userId, score } = req.body;
 
     try {
-        console.log('run socket');
-        await sendSocketData(contestId);
+
         let details = await updateResult(contestId, userId, score);
+        await sendSocketData(contestId);
         if (!details) {
             return res.status(404).json({ msg: "something is wrong in function , updateResult - ./utlis/scoreUpdate" });
         }
