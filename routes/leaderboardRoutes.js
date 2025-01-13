@@ -3,14 +3,14 @@ const { getLeaderboardByContestId, getWeeklyLeaderboard, getMonthlyLeaderboard }
 
 const router = express.Router();
 
-// GET /leaderboard/:contestId - Fetch leaderboard for a specific contest
-router.get('/leaderboard/:contestId', getLeaderboardByContestId);
-  
+
 // GET /leaderboard/weekly - Fetch weekly leaderboard
 router.get('/leaderboard/weekly', getWeeklyLeaderboard);
 
 // GET /leaderboard/monthly - Fetch monthly leaderboard
 router.get('/leaderboard/monthly', getMonthlyLeaderboard);
 
+// GET /leaderboard/:contestId - Fetch leaderboard for a specific contest
+router.get('/leaderboard/:contestId', getLeaderboardByContestId);
+
 module.exports = router;
- 

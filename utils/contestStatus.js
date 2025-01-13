@@ -6,6 +6,7 @@ const cron = require('node-cron');
 const moment = require('moment-timezone'); // Import moment-timezone for IST handling
 const { getIo } = require('../sockets/socketService');
 const sendNotification = require('./notification');
+const { createWinnerEntry } = require('../controllers/winnersController');
 
 cron.schedule('*/5 * * * * *', async () => {
     try {
@@ -120,7 +121,7 @@ cron.schedule('*/5 * * * * *', async () => {
 
 
                                 // Create a winner entry for the player
-                                const winnerEntry = await createWinnerEntry(userId, winningAmount, currentDateTime.toDate());
+                                const winnerEntry = await createWinnerEntry(userId, winningAmount);
                                 if (winnerEntry) {
                                     console.log(`Winner entry created for user "${user.name}" with amount: ${winningAmount}`);
                                 } else {

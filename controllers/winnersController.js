@@ -1,17 +1,21 @@
 const Winners = require('../models/winnersModel');
+const moment = require('moment-timezone');
 
 // Function to create a new winning entry without request and response
-const createWinnerEntry = async (userId, winningAmount, winningDate) => {
+const createWinnerEntry = async (userId, winningAmount) => {
     try {
         // Check if all required fields are provided
-        if (!userId || !winningAmount || !winningDate) {
+        if (!userId || !winningAmount) {
             throw new Error('All fields are required');
         }
+
+        // Generate the current date in Asia/Kolkata timezone
+        const currentDate = moment.tz('Asia/Kolkata').format('DD-MM-YYYY');
 
         const newWinner = new Winners({
             userId,
             winning: winningAmount,
-            date: winningDate // Ensure the date is in 'dd-mm-yyyy' format
+            date: currentDate // Ensure the date is in 'dd-mm-yyyy' format
         });
 
         await newWinner.save();

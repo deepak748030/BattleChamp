@@ -1,7 +1,8 @@
 const ContestDetails = require('../models/contestDetailsModel');
 const Winners = require('../models/winnersModel');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const contestModel = require('../models/contestModel');
+
 // GET /leaderboard/:contestId - Get leaderboard for a specific contest, sorted by bestScore
 const getLeaderboardByContestId = async (req, res) => {
     const { contestId } = req.params;
@@ -20,8 +21,14 @@ const getLeaderboardByContestId = async (req, res) => {
             return res.status(404).json({ msg: 'No data found for this contest' });
         }
 
-        // Sort the players by bestScore in descending order
-        const sortedPlayers = contestDetails.joinedPlayerData.sort((a, b) => b.bestScore - a.bestScore);
+        // Sort the players by bestScore in descending order and then by createdAt in descending order
+        const sortedPlayers = contestDetails.joinedPlayerData.sort((a, b) => {
+            if (b.bestScore === a.bestScore) {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            }
+            return b.bestScore - a.bestScore;
+        });
+
         // Remove createdAt and updatedAt fields from contest object
         const { createdAt, updatedAt, ...contestWithoutTimestamps } = contest.toObject();
 
@@ -36,17 +43,17 @@ const getLeaderboardByContestId = async (req, res) => {
     }
 };
 
-
 // GET /leaderboard/weekly - Get leaderboard for winners in the current week
 const getWeeklyLeaderboard = async (req, res) => {
     try {
-        // Get the start and end date for the current week
-        const startOfWeek = moment().startOf('week').toDate();
-        const endOfWeek = moment().endOf('week').toDate();
+        // Get the start and end date for the current week in the specified timezone
+        const timezone = 'Asia/Kolkata'; // Indian Standard Time (IST)
+        const startOfWeek = moment.tz(timezone).startOf('isoWeek').toDate();
+        const endOfWeek = moment.tz(timezone).endOf('isoWeek').toDate();
 
-        // Find winners within the current week
+        // Find winners within the current week based on createdAt date
         const weeklyWinners = await Winners.find({
-            date: { $gte: startOfWeek, $lte: endOfWeek }
+            createdAt: { $gte: startOfWeek, $lte: endOfWeek }
         });
 
         if (!weeklyWinners || weeklyWinners.length === 0) {
@@ -62,13 +69,14 @@ const getWeeklyLeaderboard = async (req, res) => {
 // GET /leaderboard/monthly - Get leaderboard for winners in the current month
 const getMonthlyLeaderboard = async (req, res) => {
     try {
-        // Get the start and end date for the current month
-        const startOfMonth = moment().startOf('month').toDate();
-        const endOfMonth = moment().endOf('month').toDate();
+        // Get the start and end date for the current month in the specified timezone
+        const timezone = 'Asia/Kolkata'; // Indian Standard Time (IST)
+        const startOfMonth = moment.tz(timezone).startOf('month').toDate();
+        const endOfMonth = moment.tz(timezone).endOf('month').toDate();
 
-        // Find winners within the current month
+        // Find winners within the current month based on createdAt date
         const monthlyWinners = await Winners.find({
-            date: { $gte: startOfMonth, $lte: endOfMonth }
+            createdAt: { $gte: startOfMonth, $lte: endOfMonth }
         });
 
         if (!monthlyWinners || monthlyWinners.length === 0) {

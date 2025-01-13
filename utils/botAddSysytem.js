@@ -16,6 +16,7 @@ function getRandomBots(bots, count, excludedBotIds) {
 // Cron task to run every 2 minutes
 cron.schedule('*/2 * * * *', async () => {
     try {
+
         // Step 1: Find all ContestDetails
         const contestDetailsList = await ContestDetails.find({}).populate({
             path: 'joinedPlayerData.userId',
@@ -62,6 +63,7 @@ cron.schedule('*/2 * * * *', async () => {
 
             // Step 6: Check if bots are less than the required `lastRank`
             const botsToAddCount = lastRank - joinedBotIds.length;
+
             if (botsToAddCount > 0) {
                 // Calculate the maximum number of bots to add in this iteration
                 const botsToAddNow = Math.min(botsToAddCount, 5);
