@@ -13,8 +13,6 @@ cron.schedule('*/5 * * * * *', async () => {
 
         // Step 1: Fetch all contests
         const contests = await Contest.find({}).populate('gameId', 'gameName');
-        console.log(contests)
-        // console 
         // Step 2: Get the current time in IST
         const currentDateTime = moment.tz('Asia/Kolkata'); // Use Indian Standard Time (IST)
 
