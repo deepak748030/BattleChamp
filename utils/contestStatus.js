@@ -12,7 +12,8 @@ cron.schedule('*/5 * * * * *', async () => {
         // console.log('Cron job running...');
 
         // Step 1: Fetch all contests
-        const contests = await Contest.find({}).populate('gameId');
+        const contests = await Contest.find({}).populate('gameId', 'gameName');
+        console.log(contests)
         // console 
         // Step 2: Get the current time in IST
         const currentDateTime = moment.tz('Asia/Kolkata'); // Use Indian Standard Time (IST)
@@ -111,7 +112,7 @@ cron.schedule('*/5 * * * * *', async () => {
                                     type: 'Bet',
                                     status: 'Success',
                                     amount: winningAmount,
-                                    gameName: contest.name,
+                                    gameName: contest.gameId.gameName,
                                     contestId: _id,
                                     result: 0,
                                 };
@@ -120,7 +121,7 @@ cron.schedule('*/5 * * * * *', async () => {
                                 await transaction.save(); // Save the transaction
 
                                 // Update the user's wallet with the winning amount if the user role is 'user'
-                                if (user.role === 'user') {
+                                if (user.role == 'user') {
                                     await User.findByIdAndUpdate(userId, { $inc: { winningWallet: winningAmount } });
                                     console.log(`User "${user.name}"'s wallet updated with amount: ${winningAmount}`);
                                     let userStatus = 'win';
