@@ -3,13 +3,13 @@ const Winners = require('../models/winnersModel');
 const moment = require('moment-timezone');
 const contestModel = require('../models/contestModel');
 
-// GET /leaderboard/:contestId - Get leaderboard for a specific contest, sorted by bestScore
+// GET /leaderboard/:contestId - Get leaderboard for a specific contest, sorted by bestScore and winAmount
 const getLeaderboardByContestId = async (req, res) => {
     const { contestId } = req.params;
 
     try {
         // Fetch contest details with matching contestId
-        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId', "name email mobile lifetimeWinning").exec();
+        const contestDetails = await ContestDetails.findOne({ contestId }).populate('joinedPlayerData.userId', "name email mobile lifetimeWinning winAmount").exec();
 
         if (!contestDetails) {
             return res.status(404).json({ msg: 'No data found for this contest' });
@@ -21,10 +21,13 @@ const getLeaderboardByContestId = async (req, res) => {
             return res.status(404).json({ msg: 'No data found for this contest' });
         }
 
-        // Sort the players by bestScore in descending order and then by createdAt in descending order
+        // Sort the players by bestScore in descending order, then by winAmount in descending order, and then by createdAt in descending order
         const sortedPlayers = contestDetails.joinedPlayerData.sort((a, b) => {
             if (b.bestScore === a.bestScore) {
-                return new Date(b.createdAt) - new Date(a.createdAt);
+                if (b.winAmount === a.winAmount) {
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                }
+                return b.winAmount - a.winAmount;
             }
             return b.bestScore - a.bestScore;
         });
@@ -51,10 +54,10 @@ const getWeeklyLeaderboard = async (req, res) => {
         const startOfWeek = moment.tz(timezone).startOf('isoWeek').toDate();
         const endOfWeek = moment.tz(timezone).endOf('isoWeek').toDate();
 
-        // Find winners within the current week based on createdAt date
+        // Find winners within the current week based on createdAt date and populate user name
         const weeklyWinners = await Winners.find({
             createdAt: { $gte: startOfWeek, $lte: endOfWeek }
-        });
+        }).populate('userId', 'name').sort({ winning: -1 }).exec();
 
         if (!weeklyWinners || weeklyWinners.length === 0) {
             return res.status(404).json({ msg: 'No winners found for this week' });
@@ -74,10 +77,10 @@ const getMonthlyLeaderboard = async (req, res) => {
         const startOfMonth = moment.tz(timezone).startOf('month').toDate();
         const endOfMonth = moment.tz(timezone).endOf('month').toDate();
 
-        // Find winners within the current month based on createdAt date
+        // Find winners within the current month based on createdAt date and populate user name
         const monthlyWinners = await Winners.find({
             createdAt: { $gte: startOfMonth, $lte: endOfMonth }
-        });
+        }).populate('userId', 'name').sort({ winning: -1 }).exec();
 
         if (!monthlyWinners || monthlyWinners.length === 0) {
             return res.status(404).json({ msg: 'No winners found for this month' });
