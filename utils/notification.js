@@ -1,4 +1,6 @@
 const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config({ path: '.env' })
 
 async function sendNotification(notificationId, userStatus, userName, gameName) {
     // Determine title, message, and image based on user status (win or lose)
@@ -20,7 +22,7 @@ async function sendNotification(notificationId, userStatus, userName, gameName) 
 
     // Notification payload
     const notificationData = {
-        app_id: `81fea1fa-8bfc-4526-9a47-c84411b569ae`, // Your OneSignal App ID
+        app_id: `${process.env.API_ID}`, // Your OneSignal App ID
         include_player_ids: [notificationId],
         // included_segments: ["All"],
         headings: { en: notificationTitle },
@@ -34,7 +36,7 @@ async function sendNotification(notificationId, userStatus, userName, gameName) 
         const response = await axios.post('https://onesignal.com/api/v1/notifications', notificationData, {
             headers: {
                 'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': `os_v2_app_qh7kd6ul7rcsngshzbcbdnljv26o4cwnvqwemye3jz2qjqls4nyhdisffiek7oquaryu6yzq6zvspo44jkveax7ozlat5ilif5hjeoq` // Your OneSignal REST API Key
+                'Authorization': `${process.env.AUTHORIZATION}` // Your OneSignal REST API Key
             }
         });
 
