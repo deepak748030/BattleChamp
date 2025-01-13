@@ -118,6 +118,14 @@ cron.schedule('*/5 * * * * *', async () => {
                                 const transaction = new Transaction(transactionData);
                                 await transaction.save(); // Save the transaction
 
+
+                                // Create a winner entry for the player
+                                const winnerEntry = await createWinnerEntry(userId, winningAmount, currentDateTime.toDate());
+                                if (winnerEntry) {
+                                    console.log(`Winner entry created for user "${user.name}" with amount: ${winningAmount}`);
+                                } else {
+                                    console.error(`Failed to create winner entry for user "${user.name}"`);
+                                }
                                 // Update the user's wallet with the winning amount if the user role is 'user'
                                 if (user.role == 'user') {
                                     await User.findByIdAndUpdate(userId, { $inc: { winningWallet: winningAmount } });
@@ -127,7 +135,11 @@ cron.schedule('*/5 * * * * *', async () => {
                                     let gameName = contest.name;
                                     sendNotification(userId, userStatus, userName, gameName)
                                 }
-
+                                io.emit('contestUpdated', {
+                                    contestId: contest._id,
+                                    availableSlots: contest.availableSlots,
+                                    contestStatus: newStatus
+                                });
                                 console.log(`Transaction created for user "${user.name}" in contest "${contest.name}", amount: ${winningAmount}`);
                             } else {
                                 try {

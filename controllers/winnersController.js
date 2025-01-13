@@ -1,13 +1,11 @@
 const Winners = require('../models/winnersModel');
 
-// Function to create a new winning entry
-const createWinner = async (req, res) => {
+// Function to create a new winning entry without request and response
+const createWinnerEntry = async (userId, winningAmount, winningDate) => {
     try {
-        const { userId, winningAmount, winningDate } = req.body;
-
         // Check if all required fields are provided
         if (!userId || !winningAmount || !winningDate) {
-            return res.status(400).json({ msg: 'All fields are required' });
+            throw new Error('All fields are required');
         }
 
         const newWinner = new Winners({
@@ -17,9 +15,9 @@ const createWinner = async (req, res) => {
         });
 
         await newWinner.save();
-        return res.status(201).json({ msg: 'Winner created successfully', data: newWinner });
+        return { msg: 'Winner created successfully', data: newWinner };
     } catch (error) {
-        return res.status(500).json({ msg: 'Error creating winner', error: error.message });
+        throw new Error(`Error creating winner: ${error.message}`);
     }
 };
 
@@ -40,4 +38,4 @@ const getWinnersByUserId = async (req, res) => {
     }
 };
 
-module.exports = { createWinner, getWinnersByUserId };
+module.exports = { createWinnerEntry, getWinnersByUserId };
